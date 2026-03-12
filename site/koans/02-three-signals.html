@@ -47,23 +47,24 @@
       border-radius: 0.5em;
       color: var(--text-primary);
       cursor: pointer;
-      transition: all 0.3s var(--ease-spring);
+      transition: background 0.3s var(--ease-spring), border-color 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-spring);
       user-select: none;
-      z-index: 1;
     }
 
     .telem-item:hover {
       border-color: var(--accent-blue);
       background: rgba(30, 37, 46, 0.75);
-      transform: translateY(-1px);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
 
     .telem-item.assigned {
-      opacity: 0;
-      transform: scale(0.9);
+      visibility: hidden;
+      height: 0;
+      padding: 0;
+      margin: 0;
+      border: none;
+      overflow: hidden;
       pointer-events: none;
-      position: absolute;
     }
 
     /* Bucket picker that appears on click */
