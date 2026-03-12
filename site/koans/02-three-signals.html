@@ -34,20 +34,19 @@
       font-family: var(--font-mono);
       font-size: 0.8rem;
       padding: 0.6rem 1rem;
-      background: var(--bg-glass);
+      background: rgba(22, 27, 34, 0.65);
       border: 1px solid var(--border-subtle);
       border-radius: 0.5em;
       color: var(--text-primary);
       cursor: pointer;
-      backdrop-filter: blur(var(--blur));
-      -webkit-backdrop-filter: blur(var(--blur));
       transition: all 0.3s var(--ease-spring);
       user-select: none;
+      z-index: 1;
     }
 
     .telem-item:hover {
       border-color: var(--accent-blue);
-      background: var(--bg-glass-hover);
+      background: rgba(30, 37, 46, 0.75);
       transform: translateY(-1px);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
@@ -67,14 +66,12 @@
       transform: translateX(-50%);
       display: none;
       gap: 0.4rem;
-      background: var(--bg-glass);
+      background: rgba(22, 27, 34, 0.85);
       border: 1px solid var(--border);
       border-radius: 0.5em;
       padding: 0.4rem;
       z-index: 100;
       white-space: nowrap;
-      backdrop-filter: blur(var(--blur));
-      -webkit-backdrop-filter: blur(var(--blur));
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
     }
 
@@ -88,18 +85,16 @@
       padding: 0.3rem 0.7rem;
       border: 1px solid var(--border-subtle);
       border-radius: 0.5em;
-      background: var(--bg-glass);
+      background: rgba(22, 27, 34, 0.65);
       color: var(--text-primary);
       cursor: pointer;
-      backdrop-filter: blur(var(--blur));
-      -webkit-backdrop-filter: blur(var(--blur));
       transition: all 0.3s var(--ease-spring);
     }
 
     .picker-btn:hover {
       border-color: var(--accent-blue);
       color: var(--accent-blue);
-      background: var(--bg-glass-hover);
+      background: rgba(30, 37, 46, 0.75);
       transform: translateY(-1px);
     }
 
@@ -112,14 +107,12 @@
     }
 
     .bucket {
-      background: var(--bg-glass);
+      background: rgba(22, 27, 34, 0.65);
       border: 1px dashed var(--border-subtle);
       border-radius: 1em;
       min-height: 200px;
       display: flex;
       flex-direction: column;
-      backdrop-filter: blur(var(--blur));
-      -webkit-backdrop-filter: blur(var(--blur));
       box-shadow: var(--shadow-inset);
       transition: all 0.3s var(--ease-smooth);
     }
@@ -255,15 +248,13 @@
 
     /* ── Phase 2: Matching exercise ── */
     .match-exercise {
-      background: var(--bg-glass);
+      background: rgba(22, 27, 34, 0.65);
       border: 1px solid var(--border-subtle);
       border-radius: 1em;
       padding: 1.5rem;
       margin-bottom: 2rem;
       opacity: 0;
       transform: translateY(12px);
-      backdrop-filter: blur(var(--blur));
-      -webkit-backdrop-filter: blur(var(--blur));
       box-shadow: var(--shadow-inset);
       transition: opacity 0.6s var(--ease-smooth), transform 0.6s var(--ease-smooth);
     }
@@ -314,20 +305,18 @@
       padding: 0.5rem 1rem;
       border: 1px solid var(--border);
       border-radius: 0.5em;
-      background: var(--bg-glass);
+      background: rgba(22, 27, 34, 0.65);
       color: var(--text-primary);
       cursor: pointer;
       width: 100%;
       appearance: none;
       -webkit-appearance: none;
-      backdrop-filter: blur(var(--blur));
-      -webkit-backdrop-filter: blur(var(--blur));
       transition: all 0.3s var(--ease-spring);
     }
 
     .match-select:hover {
       border-color: var(--accent-blue);
-      background: var(--bg-glass-hover);
+      background: rgba(30, 37, 46, 0.75);
     }
 
     .match-select:focus {
@@ -369,12 +358,10 @@
     .signals-insight {
       text-align: center;
       padding: 1.5rem;
-      background: var(--bg-glass);
+      background: rgba(22, 27, 34, 0.65);
       border: 1px solid var(--border-subtle);
       border-radius: 1em;
       opacity: 0;
-      backdrop-filter: blur(var(--blur));
-      -webkit-backdrop-filter: blur(var(--blur));
       box-shadow: var(--shadow-inset);
       transition: opacity 0.6s var(--ease-smooth);
     }
