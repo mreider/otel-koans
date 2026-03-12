@@ -57,21 +57,23 @@
     updateBtn();
   });
 
-  // If music was enabled on a previous page, auto-resume on first user gesture
-  var enabled = localStorage.getItem(KEY_ENABLED) === '1';
-  if (enabled) {
-    // Try playing immediately (works if browser has media engagement for this origin)
+  // Default behavior: music starts on first interaction unless user turned it off
+  var userDisabled = localStorage.getItem(KEY_ENABLED) === '0';
+
+  if (!userDisabled) {
+    // Try playing immediately
     startPlayback();
-    // Fallback: resume on any user interaction
-    var resumeHandler = function () {
-      if (audio.paused && localStorage.getItem(KEY_ENABLED) === '1') {
+    // Fallback: start on first user interaction (browser autoplay policy)
+    var autoStart = function () {
+      if (audio.paused && localStorage.getItem(KEY_ENABLED) !== '0') {
+        localStorage.setItem(KEY_ENABLED, '1');
         startPlayback();
       }
-      document.removeEventListener('click', resumeHandler, true);
-      document.removeEventListener('keydown', resumeHandler, true);
+      document.removeEventListener('click', autoStart, true);
+      document.removeEventListener('keydown', autoStart, true);
     };
-    document.addEventListener('click', resumeHandler, true);
-    document.addEventListener('keydown', resumeHandler, true);
+    document.addEventListener('click', autoStart, true);
+    document.addEventListener('keydown', autoStart, true);
   }
 
   updateBtn();
