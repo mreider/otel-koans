@@ -3,14 +3,14 @@
 :root {
   --bg-primary: #0a0e14;
   --bg-secondary: rgba(22, 27, 34, 0.55);
-  --bg-tertiary: rgba(28, 33, 40, 0.4);
-  --bg-glass: rgba(22, 27, 34, 0.45);
-  --bg-glass-hover: rgba(30, 37, 46, 0.6);
-  --border: rgba(48, 54, 61, 0.4);
-  --border-subtle: rgba(48, 54, 61, 0.2);
+  --bg-tertiary: rgba(28, 33, 40, 0.6);
+  --bg-glass: rgba(22, 27, 34, 0.6);
+  --bg-glass-hover: rgba(30, 37, 46, 0.75);
+  --border: rgba(48, 54, 61, 0.65);
+  --border-subtle: rgba(48, 54, 61, 0.4);
   --text-primary: #c9d1d9;
-  --text-secondary: #8b949e;
-  --text-muted: rgba(139, 148, 158, 0.5);
+  --text-secondary: #9ba4ae;
+  --text-muted: rgba(139, 148, 158, 0.7);
   --accent-blue: #58a6ff;
   --accent-green: #3fb950;
   --accent-orange: #d29922;
