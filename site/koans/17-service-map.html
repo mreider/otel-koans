@@ -649,6 +649,23 @@
 
       var awaitingPrediction = false;
 
+      /* Utility: detect when a smooth scroll finishes */
+      function waitForScrollEnd(cb) {
+        var lastY = window.scrollY;
+        var stable = 0;
+        function check() {
+          if (Math.abs(window.scrollY - lastY) < 1) {
+            stable++;
+            if (stable > 10) { cb(); return; }
+          } else {
+            stable = 0;
+          }
+          lastY = window.scrollY;
+          requestAnimationFrame(check);
+        }
+        requestAnimationFrame(check);
+      }
+
       /* ----- DOM refs ----- */
       var workspace = document.getElementById('workspace');
       var traceHint = document.getElementById('traceHint');
@@ -671,12 +688,15 @@
               opts.forEach(function (o) { o.classList.add('disabled'); });
               fb1.textContent = 'Exactly. Every trace is a record of which service called which. Let\u2019s prove it.';
               fb1.className = 'map-fb map-fb--correct';
-              /* Reveal workspace and unlock first trace */
+              /* Reveal workspace and scroll to it */
               setTimeout(function () {
                 workspace.style.opacity = '1';
                 workspace.style.pointerEvents = 'auto';
                 unlockTrace(0, false);
                 traceHint.textContent = 'Click Trace 1 to begin building the map.';
+                setTimeout(function () {
+                  workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 300);
               }, 800);
             } else {
               this.classList.add('wrong');
@@ -870,12 +890,20 @@
             unlockTrace(next, true);
             traceHint.textContent = 'Click Trace ' + (next + 1) + ' to process it.';
           } else {
-            /* All traces processed - map is complete */
+            /* All traces processed — pan to the completed map, then show Q2 */
             traceHint.textContent = 'All 5 traces processed. Map complete.';
             legend.classList.add('visible');
             setTimeout(function () {
-              document.getElementById('q2').classList.add('visible');
-            }, 800);
+              document.querySelector('.map-panel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+              waitForScrollEnd(function () {
+                setTimeout(function () {
+                  document.getElementById('q2').classList.add('visible');
+                  setTimeout(function () {
+                    document.getElementById('q2').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }, 400);
+                }, 1500);
+              });
+            }, 400);
           }
         }, edges.length * edgeDelay + 200);
       }
