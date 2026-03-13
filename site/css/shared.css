@@ -301,8 +301,8 @@ body {
   100% { transform: translate(-9px, -22px) rotate(-20deg); opacity: 0; }
 }
 
-/* ON: hide the notes — the music itself is the feedback */
-.music-on .music-float { animation: none; opacity: 0; }
+/* ON: hide the notes entirely — the music itself is the feedback */
+.music-on .music-float-notes { display: none; }
 
 /* Music toggle inside the unified bar */
 .progress-nav .music-toggle {
