@@ -96,7 +96,7 @@
   // Copyright (appears above bar on hover)
   var copy = document.createElement('div');
   copy.className = 'site-copyright';
-  copy.textContent = '\u00A9 2026 Matthew Reider \u00B7 MIT License \u00B7 v0.3.2';
+  copy.textContent = '\u00A9 2026 Matthew Reider \u00B7 MIT License \u00B7 v0.3.3';
   nav.appendChild(copy);
 
   document.body.appendChild(nav);

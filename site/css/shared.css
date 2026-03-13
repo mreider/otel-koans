@@ -271,34 +271,34 @@ body {
 
 .music-float {
   position: absolute;
-  font-size: 0.5rem;
+  font-size: 0.85rem;
   opacity: 0;
 }
 
 /* OFF: lively floating notes to show music is available */
-.music-float:nth-child(1) { font-size: 0.45rem; animation: note-invite-right 3s ease-out infinite;  animation-delay: 0s; }
-.music-float:nth-child(2) { font-size: 0.4rem;  animation: note-invite-center 2.8s ease-out infinite; animation-delay: 0.6s; }
-.music-float:nth-child(3) { font-size: 0.42rem; animation: note-invite-left 3.2s ease-out infinite;  animation-delay: 1.2s; }
-.music-float:nth-child(4) { font-size: 0.38rem; animation: note-invite-left 2.6s ease-out infinite;  animation-delay: 1.8s; }
-.music-float:nth-child(5) { font-size: 0.4rem;  animation: note-invite-right 3s ease-out infinite;   animation-delay: 2.4s; }
+.music-float:nth-child(1) { font-size: 0.85rem; animation: note-invite-right 3s ease-out infinite;  animation-delay: 0s; }
+.music-float:nth-child(2) { font-size: 0.75rem; animation: note-invite-center 2.8s ease-out infinite; animation-delay: 0.6s; }
+.music-float:nth-child(3) { font-size: 0.8rem;  animation: note-invite-left 3.2s ease-out infinite;  animation-delay: 1.2s; }
+.music-float:nth-child(4) { font-size: 0.7rem;  animation: note-invite-left 2.6s ease-out infinite;  animation-delay: 1.8s; }
+.music-float:nth-child(5) { font-size: 0.75rem; animation: note-invite-right 3s ease-out infinite;   animation-delay: 2.4s; }
 
 @keyframes note-invite-right {
   0%   { transform: translate(0, 0) rotate(0deg); opacity: 0; }
-  8%   { opacity: 0.5; }
-  50%  { opacity: 0.3; }
-  100% { transform: translate(10px, -24px) rotate(25deg); opacity: 0; }
+  8%   { opacity: 0.6; }
+  50%  { opacity: 0.4; }
+  100% { transform: translate(14px, -32px) rotate(25deg); opacity: 0; }
 }
 @keyframes note-invite-center {
   0%   { transform: translate(0, 0) rotate(0deg); opacity: 0; }
-  8%   { opacity: 0.5; }
-  50%  { opacity: 0.3; }
-  100% { transform: translate(1px, -26px) rotate(5deg); opacity: 0; }
+  8%   { opacity: 0.6; }
+  50%  { opacity: 0.4; }
+  100% { transform: translate(1px, -35px) rotate(5deg); opacity: 0; }
 }
 @keyframes note-invite-left {
   0%   { transform: translate(0, 0) rotate(0deg); opacity: 0; }
-  8%   { opacity: 0.5; }
-  50%  { opacity: 0.3; }
-  100% { transform: translate(-9px, -22px) rotate(-20deg); opacity: 0; }
+  8%   { opacity: 0.6; }
+  50%  { opacity: 0.4; }
+  100% { transform: translate(-12px, -30px) rotate(-20deg); opacity: 0; }
 }
 
 /* ON: hide the notes entirely — the music itself is the feedback */
