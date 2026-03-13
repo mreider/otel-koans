@@ -1,4 +1,4 @@
-/* Smooth auto-scroll — gently bring newly revealed elements into view */
+/* Smooth auto-scroll - gently bring newly revealed elements into view */
 (function () {
   var SCROLL_DELAY = 150;  // let opacity transition start before scrolling
   var pending = null;
@@ -23,7 +23,7 @@
       if (!el.classList.contains('visible')) continue;
       // Skip tiny inline elements (hints, individual letters, etc.)
       if (el.offsetHeight < 30) continue;
-      // Debounce — if multiple reveals happen rapidly, scroll to the last one
+      // Debounce - if multiple reveals happen rapidly, scroll to the last one
       clearTimeout(pending);
       pending = setTimeout(function () { scrollToCenter(el); }, SCROLL_DELAY);
     }

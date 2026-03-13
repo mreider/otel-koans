@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koan 5: What is a Trace? — OpenTelemetry Koans</title>
+  <title>Koan 5: What is a Trace? - OpenTelemetry Koans</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
@@ -517,14 +517,14 @@
         </div>
         <div class="metric-verdict">
           Request count looks normal. But latency is high.<br>
-          The metric tells you <em>something</em> is slow &mdash; but not <em>which service</em>.
+          The metric tells you <em>something</em> is slow, but not <em>which service</em>.
         </div>
       </div>
     </div>
 
     <!-- Log panel -->
     <div class="log-panel" id="logPanel">
-      <div class="log-panel-header">log viewer &mdash; last 5 seconds</div>
+      <div class="log-panel-header">log viewer - last 5 seconds</div>
       <div class="log-panel-body">
         <div class="log-line" id="log0"><span class="log-ts">14:32:01.204</span> <span class="log-svc-gateway">[gateway]</span> <span class="log-msg">incoming POST /checkout</span></div>
         <div class="log-line" id="log1"><span class="log-ts">14:32:01.218</span> <span class="log-svc-api">[api]</span> <span class="log-msg">validating cart items</span></div>
@@ -541,9 +541,9 @@
     <div class="trace-question" id="q1">
       <p>From the metrics and logs alone, can you tell which service is causing the slowness?</p>
       <div class="trace-opts">
-        <button class="trace-opt" data-answer="wrong" data-fb="wrong-db">Yes &mdash; the database</button>
-        <button class="trace-opt" data-answer="wrong" data-fb="wrong-gw">Yes &mdash; the gateway</button>
-        <button class="trace-opt" data-answer="correct" data-fb="correct">No &mdash; I can&rsquo;t see how the request flowed through the services</button>
+        <button class="trace-opt" data-answer="wrong" data-fb="wrong-db">Yes - the database</button>
+        <button class="trace-opt" data-answer="wrong" data-fb="wrong-gw">Yes - the gateway</button>
+        <button class="trace-opt" data-answer="correct" data-fb="correct">No - I can&rsquo;t see how the request flowed through the services</button>
       </div>
       <div class="trace-fb" id="fb1"></div>
     </div>
@@ -606,7 +606,7 @@
 
     <!-- Q2: What is this called? -->
     <div class="trace-question" id="q2">
-      <p>What you just did &mdash; following one request through multiple services &mdash; is called a...</p>
+      <p>What you just did, following one request through multiple services, is called a...</p>
       <div class="trace-opts">
         <button class="trace-opt" data-answer="wrong" data-fb="wrong-metric">A metric</button>
         <button class="trace-opt" data-answer="wrong" data-fb="wrong-log">A log</button>

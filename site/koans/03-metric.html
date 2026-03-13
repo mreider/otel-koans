@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koan 3: What is a Metric? — OpenTelemetry Koans</title>
+  <title>Koan 3: What is a Metric? - OpenTelemetry Koans</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
@@ -154,7 +154,7 @@
       box-shadow: 0 0 16px rgba(210, 153, 34, 0.12);
     }
 
-    /* Chart area — hidden until summarize */
+    /* Chart area - hidden until summarize */
     .chart-container {
       background: var(--bg-glass);
       border: 1px solid var(--border-subtle);
@@ -303,7 +303,7 @@
     .metric-fb--correct { color: var(--accent-green); }
     .metric-fb--wrong { color: var(--accent-red); }
 
-    /* Insight — only appears after Q2 */
+    /* Insight - only appears after Q2 */
     .metric-insight {
       text-align: center;
       padding: 1.25rem;
@@ -380,7 +380,7 @@
     <!-- Raw event stream -->
     <div class="event-console" id="eventConsole">
       <div class="event-console-header">
-        <span>checkout-svc &mdash; live event stream</span>
+        <span>checkout-svc - live event stream</span>
         <span class="event-count" id="eventCount">0 events</span>
       </div>
       <div class="event-console-body" id="eventStream"></div>
@@ -393,7 +393,7 @@
       <button class="summarize-btn" id="summarizeBtn">Count events per second</button>
     </div>
 
-    <!-- Bar chart — hidden until the learner clicks summarize -->
+    <!-- Bar chart - hidden until the learner clicks summarize -->
     <div class="chart-container" id="chartContainer">
       <div class="chart-container-header">what you built from the raw events</div>
       <div class="chart-area">
@@ -421,29 +421,29 @@
     <div class="metric-question" id="q1">
       <p>What just happened when you clicked that button?</p>
       <div class="metric-options">
-        <button class="metric-opt" data-answer="wrong" data-fb="The events are still there — you didn't delete anything. Look at what appeared in their place.">The events were deleted</button>
+        <button class="metric-opt" data-answer="wrong" data-fb="The events are still there. You didn't delete anything. Look at what appeared in their place.">The events were deleted</button>
         <button class="metric-opt" data-answer="correct" data-fb="">The events were counted and measured over time intervals</button>
-        <button class="metric-opt" data-answer="wrong" data-fb="The system didn't change. You changed how you're looking at it — from individual events to aggregated counts.">The system sped up</button>
+        <button class="metric-opt" data-answer="wrong" data-fb="The system didn't change. You changed how you're looking at it, from individual events to aggregated counts.">The system sped up</button>
       </div>
       <div class="metric-fb" id="fb1"></div>
     </div>
 
     <!-- Question 2 -->
     <div class="metric-question" id="q2">
-      <p>What you just built — a number that measures something over time — has a name. What is it called?</p>
+      <p>What you just built, a number that measures something over time, has a name. What is it called?</p>
       <div class="metric-options">
-        <button class="metric-opt" data-answer="wrong" data-fb="A log captures individual events — but you just collapsed events into a summary number.">A log</button>
+        <button class="metric-opt" data-answer="wrong" data-fb="A log captures individual events, but you just collapsed events into a summary number.">A log</button>
         <button class="metric-opt" data-answer="correct" data-fb="">A metric</button>
-        <button class="metric-opt" data-answer="wrong" data-fb="A trace follows a single request through a system — but you just aggregated many requests into a count.">A trace</button>
+        <button class="metric-opt" data-answer="wrong" data-fb="A trace follows a single request through a system, but you just aggregated many requests into a count.">A trace</button>
       </div>
       <div class="metric-fb" id="fb2"></div>
     </div>
 
-    <!-- Insight — the word "metric" appears here for the first time -->
+    <!-- Insight - the word "metric" appears here for the first time -->
     <div class="metric-insight" id="insight">
       <span class="insight-keyword">Metric</span>
       <p>A metric is a measurement captured over time.</p>
-      <p>It tells you how much, how fast, how often — the vital signs of a system.</p>
+      <p>It tells you how much, how fast, how often: the vital signs of a system.</p>
       <p>You didn't just learn what a metric is. You built one.</p>
       <br>
       <a href="04-metric-types.html">Continue &rarr;</a>
@@ -562,7 +562,7 @@
 
         function scheduleSecond() {
           if (currentSecond >= eventsPerSecond.length) {
-            // Done streaming — show challenge
+            // Done streaming - show challenge
             setTimeout(function () {
               challenge.classList.add('visible');
             }, 600);

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koan 11: Making Code Speak — OpenTelemetry Koans</title>
+  <title>Koan 11: Making Code Speak - OpenTelemetry Koans</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
@@ -64,6 +64,17 @@
 
     .inst-slot.empty {
       opacity: 0.5;
+    }
+
+    .inst-slot.next {
+      border-left: 2px dashed var(--accent-blue);
+      background: rgba(88, 166, 255, 0.04);
+      animation: slot-pulse 2s var(--ease-smooth) infinite;
+    }
+
+    @keyframes slot-pulse {
+      0%, 100% { background: rgba(88, 166, 255, 0.02); }
+      50% { background: rgba(88, 166, 255, 0.08); }
     }
 
     .inst-slot.filled {
@@ -363,7 +374,7 @@
 
     <!-- Problem statement -->
     <div class="inst-problem" id="problem">
-      This function handles checkout in production. A customer reports their checkout took 30 seconds. You look for data&mdash;timing, order details, anything&mdash;but there is none. The code works, but it tells you nothing.
+      This function handles checkout in production. A customer reports their checkout took 30 seconds. You look for data, timing, order details, anything, but there is none. The code works, but it tells you nothing.
     </div>
 
     <!-- Two-column workspace: code on left, toolbox on right -->
@@ -387,11 +398,11 @@
             </div>
             <div class="inst-output">
               <div class="inst-output-title">telemetry output</div>
-              <div class="inst-output-none" id="outputNone">nothing &mdash; the code is silent</div>
-              <div class="inst-output-line" id="outSpan"><span style="color:var(--accent-green)">span:</span> checkout &mdash; started</div>
+              <div class="inst-output-none" id="outputNone">nothing - the code is silent</div>
+              <div class="inst-output-line" id="outSpan"><span style="color:var(--accent-green)">span:</span> checkout - started</div>
               <div class="inst-output-line" id="outAttr"><span style="color:var(--accent-green)">span:</span> checkout (order.id=8842)</div>
               <div class="inst-output-line" id="outMetric"><span style="color:var(--accent-orange)">metric:</span> order.total = 49.99</div>
-              <div class="inst-output-line" id="outEnd"><span style="color:var(--accent-green)">span:</span> checkout (order.id=8842) 142ms &mdash; complete</div>
+              <div class="inst-output-line" id="outEnd"><span style="color:var(--accent-green)">span:</span> checkout (order.id=8842) 142ms - complete</div>
             </div>
           </div>
         </div>
@@ -428,11 +439,11 @@
       </div>
     </div>
 
-    <div class="inst-status" id="status">Click a line above to add it to the function.</div>
+    <div class="inst-status" id="status">Add each line in order, starting from the top of the function.</div>
 
     <!-- Question: name the act (only appears after all lines are placed) -->
     <div class="inst-question" id="q1">
-      <p>You just made silent code emit structured telemetry. This act&mdash;adding code that makes a program produce telemetry&mdash;is called...</p>
+      <p>You just made silent code emit structured telemetry. This act, adding code that makes a program produce telemetry, is called...</p>
       <div class="inst-opts">
         <button class="inst-opt" data-answer="wrong" data-wrong-msg="Debugging is finding and fixing errors. What you did was add new code to produce telemetry, not fix a bug.">Debugging</button>
         <button class="inst-opt" data-answer="correct">Instrumentation</button>
@@ -489,9 +500,25 @@
 
       var correctCount = 0;
       var totalCorrect = 4;
+      var nextOrder = 0;
       var toolFeedback = document.getElementById('toolFeedback');
       var status = document.getElementById('status');
       var outputNone = document.getElementById('outputNone');
+
+      // The sequence of slots, used to highlight the next target
+      var slotOrder = ['slot0', 'slot1', 'slot2', 'slot3'];
+
+      function highlightNextSlot() {
+        slotOrder.forEach(function (id) {
+          document.getElementById(id).classList.remove('next');
+        });
+        if (nextOrder < slotOrder.length) {
+          document.getElementById(slotOrder[nextOrder]).classList.add('next');
+        }
+      }
+
+      // Highlight the first slot on load
+      highlightNextSlot();
 
       // Attach click handlers to each tool button
       var toolButtons = document.querySelectorAll('.inst-tool');
@@ -507,7 +534,6 @@
             btn.querySelector('.tool-icon').textContent = '';
             toolFeedback.textContent = 'console.log writes text to stdout, but it is not structured telemetry. The Collector cannot process it.';
             toolFeedback.className = 'inst-tool-feedback bad';
-            // Clear feedback after a few seconds
             setTimeout(function () {
               toolFeedback.textContent = '';
               toolFeedback.className = 'inst-tool-feedback';
@@ -518,6 +544,17 @@
           var tool = tools[toolName];
           if (!tool) return;
 
+          // Enforce order: must add lines top-to-bottom
+          if (tool.order !== nextOrder) {
+            toolFeedback.textContent = 'That line belongs further down. Look for what goes in the highlighted slot first.';
+            toolFeedback.className = 'inst-tool-feedback bad';
+            setTimeout(function () {
+              toolFeedback.textContent = '';
+              toolFeedback.className = 'inst-tool-feedback';
+            }, 3000);
+            return;
+          }
+
           // Mark the button as used
           btn.classList.add('used');
           btn.querySelector('.tool-icon').textContent = '';
@@ -525,11 +562,10 @@
           // Fill the slot in the code
           var slot = document.getElementById(tool.slot);
           slot.innerHTML = tool.html;
-          slot.classList.remove('empty');
+          slot.classList.remove('empty', 'next');
           slot.classList.add('filled');
 
           // Show the corresponding telemetry output
-          // Hide the "nothing" message on first correct addition
           if (correctCount === 0) {
             outputNone.style.display = 'none';
           }
@@ -543,6 +579,10 @@
           toolFeedback.className = 'inst-tool-feedback good';
 
           correctCount++;
+          nextOrder++;
+
+          // Highlight the next slot
+          highlightNextSlot();
 
           // Update status
           if (correctCount < totalCorrect) {

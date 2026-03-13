@@ -1,4 +1,4 @@
-/* OpenTelemetry Koans — Shared Styles */
+/* OpenTelemetry Koans - Shared Styles */
 
 :root {
   --bg-primary: #0a0e14;
@@ -222,7 +222,7 @@ body {
   opacity: 0.85;
 }
 
-/* Mobile gate — desktop only */
+/* Mobile gate - desktop only */
 .mobile-gate {
   display: none;
   position: fixed;

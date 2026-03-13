@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koan 1 — OpenTelemetry Koans</title>
+  <title>Koan 1 - OpenTelemetry Koans</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
@@ -361,7 +361,7 @@
 
     <!-- Two systems side by side -->
     <div class="telem-scene">
-      <!-- System A — silent -->
+      <!-- System A - silent -->
       <div class="telem-card" id="card-a" data-system="a">
         <div class="telem-card-header">
           <span>System A</span>
@@ -379,7 +379,7 @@
         </div>
       </div>
 
-      <!-- System B — speaking -->
+      <!-- System B - speaking -->
       <div class="telem-card" id="card-b" data-system="b">
         <div class="telem-card-header">
           <span>System B</span>
@@ -420,7 +420,7 @@
       <div class="telem-feedback" id="feedback2"></div>
     </div>
 
-    <!-- Final insight — the label revealed LAST -->
+    <!-- Final insight - the label revealed LAST -->
     <div class="telem-insight" id="insight">
       <div class="insight-label">Telemetry</div>
       <p>Data a system emits about itself.</p>
@@ -443,7 +443,7 @@
       var resultA = document.getElementById('result-a');
       var resultB = document.getElementById('result-b');
 
-      // Click System A — reveal nothing
+      // Click System A - reveal nothing
       cardA.addEventListener('click', function () {
         if (investigatedA) return;
         investigatedA = true;
@@ -459,7 +459,7 @@
         checkBothInvestigated();
       });
 
-      // Click System B — reveal rich data, line by line
+      // Click System B - reveal rich data, line by line
       cardB.addEventListener('click', function () {
         if (investigatedB) return;
         investigatedB = true;
@@ -524,14 +524,14 @@
         });
       })();
 
-      // Q2 logic — specific feedback per wrong answer
+      // Q2 logic - specific feedback per wrong answer
       (function () {
         var q = document.getElementById('question2');
         var fb = document.getElementById('feedback2');
         var opts = q.querySelectorAll('.telem-option');
 
         var wrongMessages = {
-          debug: 'Debugging output is something a developer reads during development. This data is emitted continuously by the running system itself \u2014 in production, all the time.',
+          debug: 'Debugging output is something a developer reads during development. This data is emitted continuously by the running system itself, in production, all the time.',
           logs: 'Error logs are one type of this data, but System B also showed latency numbers and request traces. The answer is broader than just logs.'
         };
 

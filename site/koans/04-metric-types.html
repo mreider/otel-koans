@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koan 4: Kinds of Metrics — OpenTelemetry Koans</title>
+  <title>Koan 4: Kinds of Metrics - OpenTelemetry Koans</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
@@ -360,7 +360,7 @@
         <div class="type-card-header" id="headerB">
           <span class="type-card-name" id="nameB">Chart B</span>
         </div>
-        <div class="type-card-scenario" id="scenarioB">e.g. connection pool — active connections</div>
+        <div class="type-card-scenario" id="scenarioB">e.g. connection pool - active connections</div>
         <div class="type-card-body">
           <div class="type-chart">
             <svg id="chartB" viewBox="0 0 240 160" preserveAspectRatio="xMidYMid meet">
@@ -482,11 +482,11 @@
       var chartH = bottom - top;
       var chartW = right - left;
 
-      // Chart A: Counter data — monotonically increasing
+      // Chart A: Counter data - monotonically increasing
       var counterVals = [5, 14, 28, 39, 55, 68, 82, 101, 118, 140];
       var counterMax = 150;
 
-      // Chart B: Gauge data — goes up and down
+      // Chart B: Gauge data - goes up and down
       var gaugeVals = [8, 14, 22, 18, 25, 30, 21, 15, 19, 12];
       var gaugeMax = 30;
 
@@ -631,11 +631,11 @@
       var wrongCounts = { selectA: 0, selectB: 0, selectC: 0 };
       var hints = {
         selectA: [
-          'Look at the direction — does Chart A ever decrease?',
+          'Look at the direction. Does Chart A ever decrease?',
           'This line only goes up. It accumulates over time.'
         ],
         selectB: [
-          'Watch how Chart B moves — does it stay in one direction?',
+          'Watch how Chart B moves. Does it stay in one direction?',
           'This value rises and falls. It reflects a current level.'
         ],
         selectC: [
@@ -729,7 +729,7 @@
             document.getElementById('finalQ').classList.add('visible');
           }, 1000);
         } else if (anyWrong) {
-          labelFb.textContent = 'Not quite — look at the hints below each chart.';
+          labelFb.textContent = 'Not quite. Look at the hints below each chart.';
           labelFb.className = 'label-fb label-fb--wrong';
         } else {
           labelFb.textContent = 'Select a type for each chart first.';
@@ -748,7 +748,7 @@
             if (this.dataset.answer === 'correct') {
               this.classList.add('correct');
               opts.forEach(function (o) { o.classList.add('disabled'); });
-              fb.textContent = 'A histogram shows how values are distributed. Most fast, some slow — you see the shape.';
+              fb.textContent = 'A histogram shows how values are distributed. Most fast, some slow. You see the shape.';
               fb.className = 'types-fb types-fb--correct';
               setTimeout(function () {
                 document.getElementById('insight').classList.add('visible');

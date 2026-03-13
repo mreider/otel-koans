@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koan 18: Correlation — OpenTelemetry Koans</title>
+  <title>Koan 18: Correlation - OpenTelemetry Koans</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
@@ -12,7 +12,7 @@
   <meta name="theme-color" content="#0a0e14">
   <link rel="stylesheet" href="../css/shared.css">
   <style>
-    /* ── Signal panels — glass panels per signal with subtle colored tinting ── */
+    /* ── Signal panels - glass panels per signal with subtle colored tinting ── */
     .corr-panel {
       background: var(--bg-glass);
       border: 1px solid var(--border);
@@ -576,7 +576,7 @@
             <span class="label">service:</span> orders<br>
             <span class="label">window:</span> 10:40 &ndash; 10:45 UTC<br>
             <span class="label">threshold:</span> 500ms<br>
-            <span class="label">current:</span> 2100ms &mdash; <span style="color: var(--accent-red);">4.2x over limit</span>
+            <span class="label">current:</span> 2100ms, <span style="color: var(--accent-red);">4.2x over limit</span>
           </div>
         </div>
       </div>
@@ -591,7 +591,7 @@
     <div class="corr-question visible" id="q1" style="opacity:1;max-height:20rem;">
       <p>Which signal would help you find the specific slow request?</p>
       <div class="corr-opts">
-        <button class="corr-opt" data-answer="wrong" data-fb="Metrics show aggregates — averages, percentiles, counts. They can't show you an individual request.">Another metric</button>
+        <button class="corr-opt" data-answer="wrong" data-fb="Metrics show aggregates: averages, percentiles, counts. They can't show you an individual request.">Another metric</button>
         <button class="corr-opt" data-answer="correct" data-fb="Traces follow individual requests through the system. They can show you exactly which request was slow and where.">A trace</button>
         <button class="corr-opt" data-answer="wrong" data-fb="Resources identify where telemetry comes from, but they don't follow individual requests.">A resource</button>
       </div>
@@ -608,7 +608,7 @@
     <!-- ═══ Step 2: Trace panel ═══ -->
     <div class="corr-panel" id="tracePanel">
       <div class="corr-panel-header">
-        <span>correlated trace &mdash; orders &mdash; 10:42:01</span>
+        <span>correlated trace - orders - 10:42:01</span>
         <span class="signal-badge signal-badge--trace">trace</span>
       </div>
       <div class="corr-panel-body">
@@ -650,7 +650,7 @@
 
     <!-- Narrative 2 -->
     <div class="corr-narrative" id="narrative2">
-      The trace shows <strong>WHERE</strong> the time was spent &mdash; almost all of it in the database call. But <strong>WHY</strong> is the database slow?
+      The trace shows <strong>WHERE</strong> the time was spent, almost all of it in the database call. But <strong>WHY</strong> is the database slow?
     </div>
 
     <!-- ═══ Question 2 ═══ -->
@@ -658,7 +658,7 @@
       <p>Which signal would tell you what happened inside the database?</p>
       <div class="corr-opts">
         <button class="corr-opt" data-answer="wrong" data-fb="Metrics show trends over time, not what happened in a specific request.">A metric</button>
-        <button class="corr-opt" data-answer="correct" data-fb="Logs capture discrete events with detail — the specific error, the specific cause.">A log</button>
+        <button class="corr-opt" data-answer="correct" data-fb="Logs capture discrete events with detail: the specific error, the specific cause.">A log</button>
         <button class="corr-opt" data-answer="wrong" data-fb="Span attributes add context, but a log record captures the full event with its own detail.">A span attribute</button>
       </div>
       <div class="corr-fb" id="fb2"></div>
@@ -674,7 +674,7 @@
     <!-- ═══ Step 3: Log panel ═══ -->
     <div class="corr-panel" id="logPanel">
       <div class="corr-panel-header">
-        <span>correlated log &mdash; database &mdash; 10:42:01.980</span>
+        <span>correlated log - database - 10:42:01.980</span>
         <span class="signal-badge signal-badge--log">log</span>
       </div>
       <div class="corr-panel-body">
@@ -690,7 +690,7 @@
           </div>
         </div>
         <div class="log-id-line">
-          trace_id: <span class="highlight">a3f8b2c1d4e5</span> &nbsp;&middot;&nbsp; span_id: db-query-001 &nbsp;&middot;&nbsp; severity: ERROR
+          trace_id: <span class="highlight">a3f8b2c1d4e5</span> &nbsp;&middot;&nbsp; severity: ERROR
         </div>
       </div>
     </div>

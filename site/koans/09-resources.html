@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koan 9: Resources — OpenTelemetry Koans</title>
+  <title>Koan 9: Resources - OpenTelemetry Koans</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
@@ -502,7 +502,7 @@
       <div class="res-fb" id="fb1"></div>
     </div>
 
-    <!-- Step 2: Follow-up question — how many services? -->
+    <!-- Step 2: Follow-up question - how many services? -->
     <div class="res-followup" id="q2">
       <div class="res-followup-text">Now you can see the resources. How many <strong>services</strong> are affected?</div>
       <div class="res-followup-opts">
@@ -513,19 +513,19 @@
       <div class="res-followup-hint" id="hint2"></div>
     </div>
 
-    <!-- Step 3: Follow-up question — production only? -->
+    <!-- Step 3: Follow-up question - production only? -->
     <div class="res-followup" id="q3">
       <div class="res-followup-text">Is this happening in production only?</div>
       <div class="res-followup-opts">
         <button class="res-followup-opt" data-answer="wrong">Yes</button>
-        <button class="res-followup-opt" data-answer="correct">No — also in staging</button>
+        <button class="res-followup-opt" data-answer="correct">No, also in staging</button>
       </div>
       <div class="res-followup-hint" id="hint3"></div>
     </div>
 
     <!-- Cross-signal: resources attach to all three signals -->
     <div class="res-cross-signal" id="crossSignal">
-      <div class="res-cross-signal-label">Resources attach to all signals — not just metrics</div>
+      <div class="res-cross-signal-label">Resources attach to all signals, not just metrics</div>
       <div class="res-cross-signal-grid">
         <!-- A span with the same resource -->
         <div class="res-cross-card">
@@ -626,7 +626,7 @@
             if (this.dataset.answer === 'correct') {
               this.classList.add('correct');
               opts.forEach(function (o) { o.classList.add('disabled'); });
-              fb.textContent = 'Exactly. You need to know the source — not just the data.';
+              fb.textContent = 'Exactly. You need to know the source, not just the data.';
               fb.className = 'res-fb res-fb--correct';
 
               /* Reveal the resources on each card */
@@ -689,7 +689,7 @@
                 hint2.classList.add('visible');
                 highlightServiceNames();
               } else if (q2WrongCount === 2) {
-                hint2.textContent = 'Two cards say "orders" and one says "payment" — how many distinct names is that?';
+                hint2.textContent = 'Two cards say "orders" and one says "payment", so how many distinct names is that?';
                 hint2.classList.add('visible');
               } else {
                 hint2.textContent = 'There are exactly 2 unique service names: orders and payment.';
@@ -742,11 +742,11 @@
               q3WrongCount++;
 
               if (q3WrongCount === 1) {
-                hint3.textContent = 'Check the deployment.environment field — is it the same on all three?';
+                hint3.textContent = 'Check the deployment.environment field: is it the same on all three?';
                 hint3.classList.add('visible');
                 highlightEnvironments();
               } else if (q3WrongCount === 2) {
-                hint3.textContent = 'One card shows "staging" while two show "production" — so it is not production only.';
+                hint3.textContent = 'One card shows "staging" while two show "production", so it is not production only.';
                 hint3.classList.add('visible');
               } else {
                 hint3.textContent = 'The second card has deployment.environment = "staging", so the answer is No.';

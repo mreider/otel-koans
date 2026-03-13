@@ -47,7 +47,7 @@
     saveProgress(prog);
   }
 
-  // Watch for completion — when "next" link becomes clickable/visible or koan-complete appears
+  // Watch for completion - when "next" link becomes clickable/visible or koan-complete appears
   function markComplete() {
     if (currentIdx < 0) return;
     var prog = getProgress();

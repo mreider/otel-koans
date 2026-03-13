@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koan 15: The Pipeline — OpenTelemetry Koans</title>
+  <title>Koan 15: The Pipeline - OpenTelemetry Koans</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
@@ -124,7 +124,7 @@
       100% { left: 92%; opacity: 0; }
     }
 
-    /* YAML editor area — glass code block */
+    /* YAML editor area - glass code block */
     .yaml-editor {
       background: var(--bg-glass);
       border: 1px solid var(--border-subtle);
@@ -199,7 +199,7 @@
     .yaml-comment { color: var(--text-muted); font-style: italic; }
     .yaml-indent { display: inline-block; }
 
-    /* Dropdown selectors inside YAML — dashed drop zones */
+    /* Dropdown selectors inside YAML - dashed drop zones */
     .yaml-select {
       font-family: var(--font-mono);
       font-size: 0.85rem;
@@ -413,7 +413,7 @@
       min-height: 1.4em;
     }
 
-    /* Highlight YAML definition lines — soft glow highlighting */
+    /* Highlight YAML definition lines - soft glow highlighting */
     .yaml-line.yaml-highlight {
       background: rgba(210, 153, 34, 0.08);
       border-left: 2px solid rgba(210, 153, 34, 0.4);
@@ -442,7 +442,7 @@
 
     <div class="koan-text">
       A river without banks is a flood.<br>
-      The pipeline gives telemetry its path &mdash;<br>
+      The pipeline gives telemetry its path:<br>
       where to enter, how to flow, where to arrive.
     </div>
 
@@ -586,24 +586,24 @@
           wrongCount: 0,
           yamlLines: ['yaml-def-receivers-1', 'yaml-def-receivers-2', 'yaml-def-receivers-3', 'yaml-def-receivers-4'],
           sectionName: 'receivers',
-          hint1: 'Look at lines 1-4 — what receiver is defined under "receivers:"?',
-          hint2: 'The receivers section defines "otlp:" — the pipeline must use a receiver that exists above.',
+          hint1: 'Look at lines 1-4. What receiver is defined under "receivers:"?',
+          hint2: 'The receivers section defines "otlp:". The pipeline must use a receiver that exists above.',
           hint3: 'The only receiver defined is otlp (lines 1-4). Choose otlp.'
         },
         selProcessors: {
           wrongCount: 0,
           yamlLines: ['yaml-def-processors-1', 'yaml-def-processors-2'],
           sectionName: 'processors',
-          hint1: 'Look at lines 6-7 — what processor is defined under "processors:"?',
-          hint2: 'The processors section defines "batch:" — the pipeline must reference it by name.',
+          hint1: 'Look at lines 6-7. What processor is defined under "processors:"?',
+          hint2: 'The processors section defines "batch:". The pipeline must reference it by name.',
           hint3: 'The only processor defined is batch (lines 6-7). Choose batch.'
         },
         selExporters: {
           wrongCount: 0,
           yamlLines: ['yaml-def-exporters-1', 'yaml-def-exporters-2', 'yaml-def-exporters-3'],
           sectionName: 'exporters',
-          hint1: 'Look at lines 9-11 — what exporter is defined under "exporters:"?',
-          hint2: 'The exporters section defines "otlp:" with endpoint "jaeger:4317" — pick the matching name.',
+          hint1: 'Look at lines 9-11. What exporter is defined under "exporters:"?',
+          hint2: 'The exporters section defines "otlp:" with endpoint "jaeger:4317". Pick the matching name.',
           hint3: 'The only exporter defined is otlp (lines 9-11). Choose otlp.'
         }
       };
@@ -699,7 +699,7 @@
         });
 
         if (wrongCount > 0) {
-          status.textContent = wrongCount + ' field' + (wrongCount > 1 ? 's' : '') + ' incorrect \u2014 see the highlighted YAML sections.';
+          status.textContent = wrongCount + ' field' + (wrongCount > 1 ? 's' : '') + ' incorrect. See the highlighted YAML sections.';
           status.className = 'pipeline-status pipeline-status--error';
 
           /* Show the first wrong field's hint below the button */
@@ -710,12 +710,12 @@
           return;
         }
 
-        /* All correct — activate the pipeline */
+        /* All correct - activate the pipeline */
         configApplied = true;
         clearYamlHighlights();
         pipelineHint.textContent = '';
         pipelineHint.classList.remove('visible');
-        status.textContent = 'Config applied \u2014 pipeline is active.';
+        status.textContent = 'Config applied. Pipeline is active.';
         status.className = 'pipeline-status pipeline-status--success';
         applyBtn.style.opacity = '0.4';
         applyBtn.style.pointerEvents = 'none';

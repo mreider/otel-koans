@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koan 16: Sampling — OpenTelemetry Koans</title>
+  <title>Koan 16: Sampling - OpenTelemetry Koans</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
@@ -111,7 +111,7 @@
       right: 0;
     }
 
-    /* Trace item pills — glass sliders */
+    /* Trace item pills - glass sliders */
     .trace-pill {
       position: absolute;
       left: -200px;
@@ -174,7 +174,7 @@
     .sampling-explanation .cost-med { color: var(--accent-orange); }
     .sampling-explanation .cost-low { color: var(--accent-green); }
 
-    /* Strategy buttons — glass pills */
+    /* Strategy buttons - glass pills */
     .sampling-controls {
       text-align: center;
     }
@@ -408,7 +408,7 @@
     </div>
 
     <div class="sampling-bridge">
-      In the pipeline you just configured, a processor sits between receiving and exporting. Sampling is one such processor — it decides what to keep.
+      In the pipeline you just configured, a processor sits between receiving and exporting. Sampling is one such processor. It decides what to keep.
     </div>
 
     <div class="sampling-scene">
@@ -487,7 +487,7 @@
         { id: 20, ms: 29,   error: false }
       ];
 
-      /* Deterministic "random" 50% — pick every other plus a couple extras for variety */
+      /* Deterministic "random" 50% - pick every other plus a couple extras for variety */
       var randomKeptIds = [1, 3, 5, 8, 9, 12, 14, 16, 18, 20];
 
       /* DOM refs */
@@ -518,7 +518,7 @@
 
       function label(t) {
         var tag = t.error ? ' err' : '';
-        return 'trace #' + t.id + ' \u2014 ' + t.ms + 'ms' + tag;
+        return 'trace #' + t.id + ' - ' + t.ms + 'ms' + tag;
       }
 
       function isKept(t, strategy) {
@@ -658,12 +658,12 @@
             explanation.innerHTML = '~' + kept + '/20 traces kept. ' + errKept + ' of ' + errTotal + ' error traces survived.';
           } else {
             counter.style.color = 'var(--accent-green)';
-            explanation.innerHTML = kept + '/20 traces kept &mdash; all slow (&gt;500 ms) and error traces included.';
+            explanation.innerHTML = kept + '/20 traces kept. All slow (&gt;500 ms) and error traces included.';
           }
 
           animating = false;
 
-          /* Check if smart has been tried — if so, show quiz */
+          /* Check if smart has been tried - if so, show quiz */
           if (triedStrategies.smart) {
             setTimeout(function () {
               quizQ.classList.add('visible');

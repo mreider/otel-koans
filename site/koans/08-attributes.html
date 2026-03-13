@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koan 8: Attributes — OpenTelemetry Koans</title>
+  <title>Koan 8: Attributes - OpenTelemetry Koans</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
@@ -407,7 +407,7 @@
     <div class="koan-text">
       A number without a name is noise.<br>
       A span without detail is a blank page.<br>
-      Attributes give telemetry its meaning — the who, what, where, and why.
+      Attributes give telemetry its meaning: the who, what, where, and why.
     </div>
 
     <!-- The problem: a bare, useless metric -->
@@ -485,7 +485,7 @@
 
     <!-- Other signals with attributes (revealed after enriched metric) -->
     <div class="other-signals" id="otherSignals">
-      <div class="other-signals-title">Attributes work on every signal — not just metrics</div>
+      <div class="other-signals-title">Attributes work on every signal, not just metrics</div>
       <div class="signal-cards">
         <div class="signal-card">
           <div class="signal-card-header signal-card-header--span">span</div>
@@ -512,7 +512,7 @@
     <div class="attr-insight" id="insight">
       <p><strong>Attributes are key-value pairs.</strong> They turn raw data into answers.</p>
       <p>Every metric, span, and log can carry them.</p>
-      <p>Metrics have long called these <strong>dimensions</strong> &mdash; same truth, older name.</p>
+      <p>Metrics have long called these <strong>dimensions</strong>, same truth, older name.</p>
       <a href="10-naming.html">Continue &rarr;</a>
     </div>
   </div>
@@ -536,23 +536,23 @@
         sel1: {
           keyword: 'endpoint',
           labelId: 'label1',
-          hint1: 'The keyword is "endpoint" — which attribute describes a route or path?',
+          hint1: 'The keyword is "endpoint": which attribute describes a route or path?',
           hint2: 'It starts with "http." and describes which URL path was called.',
           hint3: 'The answer is the attribute that maps to a URL route: http.route'
         },
         sel2: {
           keyword: 'HTTP method',
           labelId: 'label2',
-          hint1: 'Focus on "HTTP method" — which attribute contains a request method?',
+          hint1: 'Focus on "HTTP method": which attribute contains a request method?',
           hint2: 'Look for an attribute with both "http" and "method" in its name.',
-          hint3: 'The attribute is http.request.method — it stores GET, POST, etc.'
+          hint3: 'The attribute is http.request.method. It stores GET, POST, etc.'
         },
         sel3: {
           keyword: 'succeed',
           labelId: 'label3',
-          hint1: 'The question asks if the request "succeeded" — what tells you success or failure?',
+          hint1: 'The question asks if the request "succeeded": what tells you success or failure?',
           hint2: 'Success means a status code like 200. Which attribute carries a status code?',
-          hint3: 'The answer is http.response.status_code — it tells you if the request succeeded.'
+          hint3: 'The answer is http.response.status_code. It tells you if the request succeeded.'
         }
       };
 
@@ -636,7 +636,7 @@
         if (!allCorrect) {
           checkStatus.textContent = 'Not quite. Read the hints below each wrong answer.';
           checkStatus.className = 'check-status error';
-          // Allow retry — reset wrong selects after a moment
+          // Allow retry - reset wrong selects after a moment
           setTimeout(function () {
             document.querySelectorAll('.attr-select.wrong').forEach(function (sel) {
               sel.classList.remove('wrong');

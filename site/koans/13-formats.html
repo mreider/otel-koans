@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koan 13: Data Formats — OpenTelemetry Koans</title>
+  <title>Koan 13: Data Formats - OpenTelemetry Koans</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
@@ -69,7 +69,7 @@
       overflow: visible;
     }
 
-    /* Format sample cards — glass with distinct subtle tinting per format */
+    /* Format sample cards - glass with distinct subtle tinting per format */
     .fmt-card {
       background: var(--bg-glass);
       border: 1px solid var(--border-subtle);
@@ -79,20 +79,14 @@
       transition: all 0.4s var(--ease-spring);
     }
 
-    /* JSON card — subtle blue tint */
-    .fmt-card#cardA {
-      background: rgba(88, 166, 255, 0.06);
-    }
+    /* JSON card - subtle blue tint */
+    .fmt-card#cardA { background: rgba(88, 166, 255, 0.06); }
 
-    /* Protobuf card — subtle purple tint */
-    .fmt-card#cardB {
-      background: rgba(188, 140, 255, 0.06);
-    }
+    /* Binary card - subtle purple tint */
+    .fmt-card#cardB { background: rgba(188, 140, 255, 0.06); }
 
-    /* Plain text card — subtle orange tint */
-    .fmt-card#cardC {
-      background: rgba(210, 153, 34, 0.06);
-    }
+    /* Plain text card - subtle orange tint */
+    .fmt-card#cardC { background: rgba(210, 153, 34, 0.06); }
 
     .fmt-card:hover {
       transform: translateY(-1px);
@@ -125,9 +119,7 @@
 
     .fmt-card-header.revealed { color: var(--accent-green); }
 
-    .fmt-card-body {
-      padding: 1rem;
-    }
+    .fmt-card-body { padding: 1rem; }
 
     .fmt-code {
       font-family: var(--font-mono);
@@ -138,17 +130,12 @@
       overflow-x: auto;
     }
 
-    /* Syntax highlighting for JSON */
     .fmt-code .jk { color: var(--accent-blue); }
     .fmt-code .jv { color: var(--accent-green); }
     .fmt-code .jn { color: var(--accent-orange); }
     .fmt-code .jb { color: var(--text-muted); }
-
-    /* Syntax highlighting for protobuf hex */
     .fmt-code .hx { color: var(--accent-purple); }
     .fmt-code .hl { color: var(--text-muted); font-style: italic; }
-
-    /* Syntax highlighting for plain text */
     .fmt-code .pk { color: var(--accent-orange); }
     .fmt-code .pv { color: var(--accent-green); }
     .fmt-code .pd { color: var(--text-muted); }
@@ -240,7 +227,6 @@
     .fmt-fb--correct { color: var(--accent-green); }
     .fmt-fb--wrong { color: var(--accent-red); }
 
-    /* Hint text that appears after wrong answers */
     .fmt-hint {
       font-family: var(--font-mono);
       font-size: 0.85rem;
@@ -252,7 +238,6 @@
 
     .fmt-hint.visible { opacity: 1; }
 
-    /* Label reveal */
     .fmt-label-text {
       opacity: 0;
       transition: opacity 0.5s var(--ease-smooth);
@@ -337,20 +322,62 @@
       transition: all 0.3s var(--ease-spring);
     }
 
-    .fmt-backend select:hover {
-      border-color: var(--accent-blue);
-    }
-
-    .fmt-backend select:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
+    .fmt-backend select:hover { border-color: var(--accent-blue); }
+    .fmt-backend select:disabled { opacity: 0.5; cursor: default; }
 
     .fmt-backend-fb {
       font-family: var(--font-mono);
       font-size: 0.8rem;
       margin-top: 0.35rem;
       min-height: 1.2em;
+    }
+
+    /* Name reveal panel */
+    .fmt-reveal {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: 1em;
+      padding: 0;
+      text-align: center;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-inset);
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: opacity 0.6s var(--ease-smooth), max-height 0.6s var(--ease-smooth), padding 0.6s var(--ease-smooth);
+    }
+
+    .fmt-reveal.visible {
+      opacity: 1;
+      max-height: 15rem;
+      padding: 1.25rem;
+    }
+
+    .fmt-reveal p {
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.75rem;
+    }
+
+    .fmt-reveal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .fmt-reveal-item {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      padding: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .fmt-reveal-item strong {
+      color: var(--accent-blue);
+      display: block;
+      margin-bottom: 0.2rem;
     }
 
     /* Insight */
@@ -421,33 +448,33 @@
     <div class="fmt-scenario">
       <div class="fmt-scenario-label">Exporter Log</div>
       <div class="fmt-scenario-log">
-<span class="log-ts">14:23:01</span>  <span class="log-svc">otel-exporter</span>  Sending span <span style="color:var(--text-primary)">checkout</span> to Prometheus...<br>
-<span class="log-ts">14:23:01</span>  <span class="log-err">ERROR</span>  Export failed: <span class="log-err">unsupported format. Prometheus cannot parse OTLP Protobuf.</span><br>
+<span class="log-ts">14:23:01</span>  <span class="log-svc">otel-exporter</span>  Sending span <span style="color:var(--text-primary)">checkout</span> to metrics backend...<br>
+<span class="log-ts">14:23:01</span>  <span class="log-err">ERROR</span>  Export failed: <span class="log-err">unsupported format. Cannot parse binary encoding.</span><br>
 <span class="log-ts">14:23:01</span>  <span class="log-err">ERROR</span>  <span class="log-err">Expected: plain text exposition format</span>
       </div>
     </div>
 
     <!-- Question 1: Why did the export fail? -->
     <div class="fmt-question start" id="q1">
-      <p>The exporter sent valid telemetry, but Prometheus rejected it. Why?</p>
+      <p>The exporter sent valid telemetry, but the backend rejected it. Why?</p>
       <div class="fmt-opts">
         <button class="fmt-opt" data-answer="wrong" data-hint="1">The span data was corrupted</button>
-        <button class="fmt-opt" data-answer="correct">The data was in a format Prometheus doesn't understand</button>
-        <button class="fmt-opt" data-answer="wrong" data-hint="2">Prometheus can't receive spans at all</button>
+        <button class="fmt-opt" data-answer="correct">The data was in a format the backend doesn't understand</button>
+        <button class="fmt-opt" data-answer="wrong" data-hint="2">The backend can't receive spans at all</button>
       </div>
       <div class="fmt-fb" id="fb1"></div>
       <div class="fmt-hint" id="hint1"></div>
     </div>
 
-    <div class="fmt-intro" id="formatIntro" style="opacity:0; transition: opacity 0.6s;">the same span &mdash; three representations</div>
+    <div class="fmt-intro" id="formatIntro" style="opacity:0; transition: opacity 0.6s;">the same span, three representations</div>
 
-    <!-- Format cards: unlabeled initially -->
+    <!-- Format cards -->
     <div class="fmt-grid" id="formatGrid">
-      <!-- Format A: OTLP JSON -->
+      <!-- Format A: Structured JSON -->
       <div class="fmt-card" id="cardA">
         <div class="fmt-card-header" id="labelA">
           <span>Format A</span>
-          <span class="fmt-label-text" id="labelTextA">&nbsp;&mdash; OTLP JSON</span>
+          <span class="fmt-label-text" id="labelTextA">&nbsp;- Structured JSON</span>
         </div>
         <div class="fmt-card-body">
           <div class="fmt-code"><span class="jb">{</span>
@@ -464,11 +491,11 @@
         </div>
       </div>
 
-      <!-- Format B: OTLP Protobuf (binary encoding) -->
+      <!-- Format B: Compact Binary -->
       <div class="fmt-card" id="cardB">
         <div class="fmt-card-header" id="labelB">
           <span>Format B</span>
-          <span class="fmt-label-text" id="labelTextB">&nbsp;&mdash; OTLP Protobuf</span>
+          <span class="fmt-label-text" id="labelTextB">&nbsp;- Compact Binary</span>
         </div>
         <div class="fmt-card-body">
           <div class="fmt-code"><span class="hl">Binary encoding (not human-readable)</span>
@@ -481,15 +508,15 @@
 <span class="hx">&#x2588;&#x2591;&#x2592;&#x2593;&#x2588;&#x2592;&#x2591;</span>  attr     <span class="hl">order.id = "8842"</span>
 
 <span class="hl">Same data as Format A, packed into</span>
-<span class="hl">a compact binary format for gRPC.</span></div>
+<span class="hl">a compact binary format.</span></div>
         </div>
       </div>
 
-      <!-- Format C: Plain text / CSV-like -->
+      <!-- Format C: Plain Text -->
       <div class="fmt-card" id="cardC">
         <div class="fmt-card-header" id="labelC">
           <span>Format C</span>
-          <span class="fmt-label-text" id="labelTextC">&nbsp;&mdash; Plain Text</span>
+          <span class="fmt-label-text" id="labelTextC">&nbsp;- Plain Text</span>
         </div>
         <div class="fmt-card-body">
           <div class="fmt-code"><span class="pk">trace_id</span><span class="pd">=</span><span class="pv">a1b2c3d4e5f6...</span>
@@ -502,49 +529,65 @@
       </div>
     </div>
 
-    <!-- Question 2: Match formats to backends -->
+    <!-- Match formats to backends (descriptive labels, no tool names) -->
     <div class="fmt-match-area" id="matchArea">
       <div class="fmt-match-grid">
-        <!-- Jaeger -->
-        <div class="fmt-backend" id="backendJaeger">
-          <div class="fmt-backend-name">Jaeger</div>
-          <div class="fmt-backend-desc">Distributed tracing UI. Accepts structured trace data over gRPC.</div>
-          <div class="fmt-backend-hint" id="hintJaeger"></div>
-          <select id="selectJaeger">
+        <div class="fmt-backend" id="backendBinary">
+          <div class="fmt-backend-name">Backend 1</div>
+          <div class="fmt-backend-desc">Accepts compact binary-encoded data</div>
+          <div class="fmt-backend-hint" id="hintBinary"></div>
+          <select id="selectBinary">
             <option value="">-- pick a format --</option>
             <option value="json">Format A</option>
             <option value="proto">Format B</option>
             <option value="text">Format C</option>
           </select>
-          <div class="fmt-backend-fb" id="fbJaeger"></div>
+          <div class="fmt-backend-fb" id="fbBinary"></div>
         </div>
 
-        <!-- Prometheus -->
-        <div class="fmt-backend" id="backendProm">
-          <div class="fmt-backend-name">Prometheus</div>
-          <div class="fmt-backend-desc">Metrics scraper. Reads key=value exposition format over HTTP.</div>
-          <div class="fmt-backend-hint" id="hintProm"></div>
-          <select id="selectProm">
+        <div class="fmt-backend" id="backendText">
+          <div class="fmt-backend-name">Backend 2</div>
+          <div class="fmt-backend-desc">Reads plain text, one key=value pair per line</div>
+          <div class="fmt-backend-hint" id="hintText"></div>
+          <select id="selectText">
             <option value="">-- pick a format --</option>
             <option value="json">Format A</option>
             <option value="proto">Format B</option>
             <option value="text">Format C</option>
           </select>
-          <div class="fmt-backend-fb" id="fbProm"></div>
+          <div class="fmt-backend-fb" id="fbText"></div>
         </div>
 
-        <!-- Logging tool -->
-        <div class="fmt-backend" id="backendLog">
-          <div class="fmt-backend-name">Logging Dashboard</div>
-          <div class="fmt-backend-desc">Ingests structured JSON via REST API for search and filtering.</div>
-          <div class="fmt-backend-hint" id="hintLog"></div>
-          <select id="selectLog">
+        <div class="fmt-backend" id="backendJson">
+          <div class="fmt-backend-name">Backend 3</div>
+          <div class="fmt-backend-desc">Accepts structured JSON with named fields</div>
+          <div class="fmt-backend-hint" id="hintJson"></div>
+          <select id="selectJson">
             <option value="">-- pick a format --</option>
             <option value="json">Format A</option>
             <option value="proto">Format B</option>
             <option value="text">Format C</option>
           </select>
-          <div class="fmt-backend-fb" id="fbLog"></div>
+          <div class="fmt-backend-fb" id="fbJson"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Real tool names revealed after matching (label-last) -->
+    <div class="fmt-reveal" id="nameReveal">
+      <p>In practice, these backends have names you'll encounter:</p>
+      <div class="fmt-reveal-grid">
+        <div class="fmt-reveal-item">
+          <strong>Jaeger</strong>
+          A tracing tool that accepts binary-encoded data
+        </div>
+        <div class="fmt-reveal-item">
+          <strong>Prometheus</strong>
+          A metrics system that scrapes key=value text
+        </div>
+        <div class="fmt-reveal-item">
+          <strong>Elasticsearch / Loki</strong>
+          Logging tools that ingest structured JSON
         </div>
       </div>
     </div>
@@ -575,11 +618,10 @@
           if (this.dataset.answer === 'correct') {
             this.classList.add('correct');
             opts1.forEach(function (o) { o.classList.add('disabled'); });
-            fb1.textContent = 'Right. The data was valid — but Prometheus couldn\'t read its format.';
+            fb1.textContent = 'Right. The data was valid, but the backend couldn\'t read its format.';
             fb1.className = 'fmt-fb fmt-fb--correct';
             hint1El.classList.remove('visible');
 
-            /* Reveal the three format cards */
             setTimeout(function () {
               document.getElementById('formatIntro').style.opacity = '1';
             }, 500);
@@ -587,7 +629,6 @@
               document.getElementById('formatGrid').classList.add('visible');
             }, 900);
 
-            /* Reveal format labels one by one */
             setTimeout(function () {
               document.getElementById('labelTextA').classList.add('visible');
             }, 1400);
@@ -598,7 +639,6 @@
               document.getElementById('labelTextC').classList.add('visible');
             }, 2000);
 
-            /* Reveal cards as identified */
             setTimeout(function () {
               var cards = document.querySelectorAll('.fmt-card');
               cards.forEach(function (c) { c.classList.add('revealed'); });
@@ -606,7 +646,6 @@
               headers.forEach(function (h) { h.classList.add('revealed'); });
             }, 2200);
 
-            /* Show the matching phase */
             setTimeout(function () {
               document.getElementById('matchArea').classList.add('visible');
             }, 2800);
@@ -617,16 +656,14 @@
             setTimeout(function () { self.classList.remove('wrong'); }, 600);
 
             if (q1Wrongs === 1) {
-              /* First wrong: structural hint */
               fb1.textContent = 'Not quite.';
               fb1.className = 'fmt-fb fmt-fb--wrong';
-              hint1El.textContent = 'Hint: Re-read the error. It says "unsupported format" — what does that tell you about the data itself?';
+              hint1El.textContent = 'Re-read the error. It says "unsupported format." What does that tell you about the data itself?';
               hint1El.classList.add('visible');
             } else {
-              /* Second wrong: narrow to the answer */
               fb1.textContent = 'Not quite.';
               fb1.className = 'fmt-fb fmt-fb--wrong';
-              hint1El.textContent = 'Hint: The data wasn\'t broken or invalid. Prometheus just doesn\'t speak that language.';
+              hint1El.textContent = 'The data wasn\'t broken or invalid. The backend just doesn\'t speak that language.';
               hint1El.classList.add('visible');
             }
           }
@@ -634,22 +671,22 @@
       });
 
       /* ---- Phase 2: Match formats to backends ---- */
-      var answers = { Jaeger: 'proto', Prom: 'text', Log: 'json' };
-      var wrongCounts = { Jaeger: 0, Prom: 0, Log: 0 };
-      var solved = { Jaeger: false, Prom: false, Log: false };
+      var answers = { Binary: 'proto', Text: 'text', Json: 'json' };
+      var wrongCounts = { Binary: 0, Text: 0, Json: 0 };
+      var solved = { Binary: false, Text: false, Json: false };
 
       var hints = {
-        Jaeger: [
-          'Hint: gRPC uses a compact binary protocol, not human-readable text.',
-          'Hint: Look at Format B — those hex bytes are a binary encoding.'
+        Binary: [
+          'Look at the format cards. Which one shows data as non-human-readable blocks?',
+          'Format B shows binary-encoded hex blocks. That matches "compact binary-encoded data."'
         ],
-        Prom: [
-          'Hint: "key=value exposition format" — which format uses that structure?',
-          'Hint: Format C uses plain key=value pairs, just like Prometheus expects.'
+        Text: [
+          'Look at the format cards. Which one shows key=value pairs, one per line?',
+          'Format C uses key=value pairs, one field per line.'
         ],
-        Log: [
-          'Hint: A REST API that supports "structured JSON" — which format is structured JSON?',
-          'Hint: Format A is JSON with curly braces, keys, and values.'
+        Json: [
+          'Look at the format cards. Which one uses curly braces and named fields?',
+          'Format A is JSON with curly braces, keys in quotes, and nested values.'
         ]
       };
 
@@ -672,7 +709,6 @@
             backend.classList.add('solved');
             select.disabled = true;
 
-            /* Highlight the matched card */
             var cardMap = { proto: 'cardB', text: 'cardC', json: 'cardA' };
             document.getElementById(cardMap[val]).classList.add('highlighted');
 
@@ -695,15 +731,19 @@
         });
       }
 
-      checkBackend('Jaeger');
-      checkBackend('Prom');
-      checkBackend('Log');
+      checkBackend('Binary');
+      checkBackend('Text');
+      checkBackend('Json');
 
       function checkAllSolved() {
-        if (solved.Jaeger && solved.Prom && solved.Log) {
+        if (solved.Binary && solved.Text && solved.Json) {
+          /* Show real tool names first, then insight */
+          setTimeout(function () {
+            document.getElementById('nameReveal').classList.add('visible');
+          }, 600);
           setTimeout(function () {
             document.getElementById('insight').classList.add('visible');
-          }, 800);
+          }, 1800);
         }
       }
     })();

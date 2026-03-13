@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koan 12: What Gets Exported — OpenTelemetry Koans</title>
+  <title>Koan 12: What Gets Exported - OpenTelemetry Koans</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
@@ -441,7 +441,7 @@
         </div>
 
         <div class="export-callout" id="callout">
-          This structured format is called <strong>OTLP</strong> &mdash; OpenTelemetry Protocol.
+          This structured format is called <strong>OTLP</strong>, OpenTelemetry Protocol.
           The code created telemetry. OTLP is how it leaves the program as structured data.
         </div>
       </div>
@@ -459,7 +459,7 @@
 
     <div class="export-insight" id="insight">
       <p>You read the code and constructed the output yourself.</p>
-      <p>Instrumentation creates telemetry. OTLP gives it a universal shape &mdash; so any tool can understand it.</p>
+      <p>Instrumentation creates telemetry. OTLP gives it a universal shape, so any tool can understand it.</p>
       <a href="13-formats.html">Continue &rarr;</a>
     </div>
   </div>
@@ -483,9 +483,9 @@
 
       /* Per-blank wrong attempt counters and corresponding code line ids */
       var blankMeta = {
-        'blank-name':  { wrongCount: 0, codeLine: 'code-line-name',  hint1: 'Look at the string passed to tracer.startSpan().', hint2: 'The span name is the argument to startSpan() — what string is in those parentheses?', hint3: 'tracer.startSpan("checkout") — the name is "checkout".' },
-        'blank-attr1': { wrongCount: 0, codeLine: 'code-line-attr1', hint1: 'Look at the first setAttribute() call — what is the key?', hint2: 'setAttribute("order.id", "8842") — the first argument is the attribute key.', hint3: 'The key is "order.id" — it is the first argument to setAttribute().' },
-        'blank-attr2': { wrongCount: 0, codeLine: 'code-line-attr2', hint1: 'Look at the second setAttribute() call — what key is used?', hint2: 'setAttribute("http.request.method", "POST") — the attribute key matches the first string argument.', hint3: 'The key is "http.request.method" — it maps directly from the code.' }
+        'blank-name':  { wrongCount: 0, codeLine: 'code-line-name',  hint1: 'Look at the string passed to tracer.startSpan().', hint2: 'The span name is the argument to startSpan(). What string is in those parentheses?', hint3: 'tracer.startSpan("checkout"): the name is "checkout".' },
+        'blank-attr1': { wrongCount: 0, codeLine: 'code-line-attr1', hint1: 'Look at the first setAttribute() call. What is the key?', hint2: 'setAttribute("order.id", "8842"): the first argument is the attribute key.', hint3: 'The key is "order.id". It is the first argument to setAttribute().' },
+        'blank-attr2': { wrongCount: 0, codeLine: 'code-line-attr2', hint1: 'Look at the second setAttribute() call. What key is used?', hint2: 'setAttribute("http.request.method", "POST"): the attribute key matches the first string argument.', hint3: 'The key is "http.request.method". It maps directly from the code.' }
       };
 
       /* Clear previous code line highlights */
@@ -565,7 +565,7 @@
             }
           });
 
-          status.textContent = wrongCount + ' wrong \u2014 check the highlighted code on the left.';
+          status.textContent = wrongCount + ' wrong. Check the highlighted code on the left.';
           status.className = 'export-status export-status--error';
 
           /* Show the first wrong blank's hint (most actionable) */
@@ -590,7 +590,7 @@
         clearCodeHighlights();
         blankHint.textContent = '';
         blankHint.classList.remove('visible');
-        status.textContent = 'All correct \u2014 you constructed the exported data.';
+        status.textContent = 'All correct. You constructed the exported data.';
         status.className = 'export-status export-status--success';
         checkBtn.style.opacity = '0.4';
         checkBtn.style.pointerEvents = 'none';
@@ -613,7 +613,7 @@
             setTimeout(function () { document.getElementById('insight').classList.add('visible'); }, 800);
           } else {
             this.classList.add('wrong');
-            fb1.textContent = 'Think about interoperability \u2014 what happens when many different tools need to read the same data?';
+            fb1.textContent = 'Think about interoperability: what happens when many different tools need to read the same data?';
             fb1.className = 'export-fb export-fb--wrong';
             var self = this;
             setTimeout(function () { self.classList.remove('wrong'); }, 500);

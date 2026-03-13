@@ -40,7 +40,7 @@
   function startPlayback() {
     var savedTime = parseFloat(localStorage.getItem(KEY_TIME) || '0');
     if (savedTime && isFinite(savedTime)) {
-      // Set immediately — if duration isn't loaded yet, also set once metadata loads
+      // Set immediately - if duration isn't loaded yet, also set once metadata loads
       try { audio.currentTime = savedTime; } catch (e) {}
       audio.addEventListener('loadedmetadata', function handler() {
         if (savedTime < audio.duration) {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koan 2: Three Signals — OpenTelemetry Koans</title>
+  <title>Koan 2: Three Signals - OpenTelemetry Koans</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
@@ -762,7 +762,7 @@
           } else {
             var t = types[0].type;
             if (typesUsed[t]) {
-              // Two buckets have the same type — shouldn't happen if homogeneous and all types present
+              // Two buckets have the same type - shouldn't happen if homogeneous and all types present
               allHomogeneous = false;
             }
             typesUsed[t] = true;
@@ -774,7 +774,7 @@
           sortWrongCount++;
 
           if (sortWrongCount === 1) {
-            sortFeedback.textContent = 'Not quite — look at the format of each item.';
+            sortFeedback.textContent = 'Not quite. Look at the format of each item.';
             sortFeedback.className = 'sort-feedback sort-feedback--hint';
           } else if (sortWrongCount === 2) {
             sortFeedback.textContent = 'Hint: some items are numbers, some are paths between services, some are timestamped events.';
@@ -783,7 +783,7 @@
             // 3rd+ wrong: highlight a specific misplaced item's characteristic
             var misplaced = findMisplacedItem(bucketCounts);
             if (misplaced) {
-              sortFeedback.textContent = '\u201c' + misplaced.text + '\u201d \u2014 ' + itemCharacteristics[misplaced.id] + '. Is it with its kind?';
+              sortFeedback.textContent = '\u201c' + misplaced.text + '\u201d: ' + itemCharacteristics[misplaced.id] + '. Is it with its kind?';
             } else {
               sortFeedback.textContent = 'Each bucket should contain items of the same kind. Numbers together, paths together, events together.';
             }
@@ -889,7 +889,7 @@
             document.getElementById('insight').classList.add('visible');
           }, 800);
         } else {
-          matchFeedback.textContent = 'Not quite. Think about what kind of data each scenario needs — a number over time, a path through services, or a discrete event.';
+          matchFeedback.textContent = 'Not quite. Think about what kind of data each scenario needs: a number over time, a path through services, or a discrete event.';
           matchFeedback.className = 'match-feedback match-feedback--wrong';
           setTimeout(function () {
             selects.forEach(function (sel) {

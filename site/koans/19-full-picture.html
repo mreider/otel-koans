@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koan 19: The Full Picture — OpenTelemetry Koans</title>
+  <title>Koan 19: The Full Picture - OpenTelemetry Koans</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
@@ -408,7 +408,7 @@
     .fp-log-line .attr-k { color: var(--accent-purple); }
     .fp-log-line .attr-v { color: var(--text-secondary); }
 
-    /* ── Service map (interactive) — glass service map ── */
+    /* ── Service map (interactive) - glass service map ── */
     .fp-service-map {
       background: var(--bg-glass);
       border: 1px solid var(--border);
@@ -546,7 +546,7 @@
       display: inline-block;
     }
 
-    /* ── Journey summary — glass treatment ── */
+    /* ── Journey summary - glass treatment ── */
     .fp-journey {
       margin-bottom: 1rem;
       opacity: 0;
@@ -789,12 +789,12 @@
     <!-- ═══ Metric panel ═══ -->
     <div class="fp-panel" id="metricPanel">
       <div class="fp-panel-header">
-        <span>metrics dashboard &mdash; orders service</span>
+        <span>metrics dashboard - orders service</span>
         <span class="fp-badge fp-badge--metric">metric</span>
       </div>
       <div class="fp-panel-body">
         <div class="fp-metric-chart">
-          <div class="fp-metric-chart-title">http.server.errors / http.server.requests &mdash; orders</div>
+          <div class="fp-metric-chart-title">http.server.errors / http.server.requests - orders</div>
           <svg class="fp-chart-svg" viewBox="0 0 500 100" preserveAspectRatio="none">
             <line x1="0" y1="80" x2="500" y2="80" stroke="var(--border)" stroke-width="0.5" />
             <line x1="0" y1="50" x2="500" y2="50" stroke="var(--accent-red)" stroke-width="1" stroke-dasharray="6,4" opacity="0.5" />
@@ -831,7 +831,7 @@
     <!-- ═══ Trace panel ═══ -->
     <div class="fp-panel" id="tracePanel">
       <div class="fp-panel-header">
-        <span>trace search &mdash; orders service &mdash; errors only</span>
+        <span>trace search - orders service - errors only</span>
         <span class="fp-badge fp-badge--trace">trace</span>
       </div>
       <div class="fp-panel-body">
@@ -870,7 +870,7 @@
           </div>
         </div>
         <div class="fp-partial-clue">
-          You can see <strong>WHERE</strong> the error happens &mdash; the database span. But the trace doesn't say <strong>WHY</strong> the database call failed.
+          You can see <strong>WHERE</strong> the error happens, the database span. But the trace doesn't say <strong>WHY</strong> the database call failed.
         </div>
       </div>
     </div>
@@ -878,7 +878,7 @@
     <!-- ═══ Log panel ═══ -->
     <div class="fp-panel" id="logPanel">
       <div class="fp-panel-header">
-        <span>log search &mdash; severity >= WARN &mdash; 14:30 to 14:40</span>
+        <span>log search - severity >= WARN - 14:30 to 14:40</span>
         <span class="fp-badge fp-badge--log">log</span>
       </div>
       <div class="fp-panel-body">
@@ -996,7 +996,7 @@
       <div class="fp-root-cause-label">Root cause identified</div>
       <p>
         The <strong>database</strong> connection pool is exhausted.<br>
-        Every service above it in the call chain &mdash; orders, api, gateway &mdash; fails as a consequence.
+        Every service above it in the call chain, orders, api, gateway, fails as a consequence.
         The log warnings from payment and inventory are symptoms of the same bottleneck.
       </p>
       <div class="fp-root-detail">

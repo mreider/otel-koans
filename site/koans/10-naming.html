@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koan 10: Naming Things — OpenTelemetry Koans</title>
+  <title>Koan 10: Naming Things - OpenTelemetry Koans</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
@@ -12,6 +12,119 @@
   <meta name="theme-color" content="#0a0e14">
   <link rel="stylesheet" href="../css/shared.css">
   <style>
+    /* "Your turn" input panel */
+    .nm-your-turn {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 1em;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow-inset);
+      text-align: center;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.6s var(--ease-smooth), transform 0.6s var(--ease-smooth);
+    }
+
+    .nm-your-turn.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .nm-your-turn-scenario {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 1rem;
+    }
+
+    .nm-your-turn-scenario code {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--accent-orange);
+      background: rgba(210, 153, 34, 0.08);
+      padding: 0.15em 0.4em;
+      border-radius: 0.3em;
+    }
+
+    .nm-your-turn-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .nm-your-input {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      padding: 0.55rem 0.75rem;
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.5em;
+      background: var(--bg-glass);
+      color: var(--text-primary);
+      outline: none;
+      width: 260px;
+      transition: all 0.3s var(--ease-smooth);
+    }
+
+    .nm-your-input:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 12px rgba(88, 166, 255, 0.1);
+    }
+    .nm-your-input::placeholder { color: var(--text-muted); }
+
+    .nm-your-input:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .nm-your-btn {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      padding: 0.55rem 1.1rem;
+      border: 1px solid rgba(88, 166, 255, 0.4);
+      border-radius: 0.5em;
+      background: rgba(88, 166, 255, 0.1);
+      color: var(--accent-blue);
+      cursor: pointer;
+      transition: all 0.3s var(--ease-spring);
+      white-space: nowrap;
+      animation: btn-breathe 2.5s var(--ease-smooth) infinite;
+    }
+
+    .nm-your-btn:hover {
+      background: rgba(88, 166, 255, 0.2);
+      border-color: var(--accent-blue);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: none;
+    }
+    .nm-your-btn:disabled { opacity: 0.4; cursor: default; transform: none; box-shadow: none; animation: none; }
+
+    .nm-your-echo {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.2em;
+    }
+
+    /* Comparison note */
+    .nm-comparison {
+      text-align: center;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--accent-red);
+      margin-bottom: 1rem;
+      line-height: 1.6;
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+    }
+
+    .nm-comparison.visible { opacity: 1; }
+
     /* Service panels */
     .nm-services {
       display: grid;
@@ -329,6 +442,7 @@
       border-radius: 1em;
       padding: 1.25rem;
       text-align: center;
+      margin-top: 1.5rem;
       margin-bottom: 0.75rem;
       box-shadow: var(--shadow-inset);
       opacity: 0;
@@ -464,14 +578,27 @@
     <h1 class="koan-title">Naming Things</h1>
 
     <div class="koan-text">
-      Three teams. Three services. Three names for the same thing.<br>
-      When the data arrives, it speaks three dialects.
+      Attributes let you attach any key to your telemetry.<br>
+      But what happens when everyone picks their own?
     </div>
 
-    <!-- Three service panels showing inconsistent naming -->
+    <!-- NEW: "Your turn" - learner names the attribute themselves -->
+    <div class="nm-your-turn" id="yourTurn">
+      <div class="nm-your-turn-scenario">
+        Your HTTP handler just returned a response. You want to record the status code as an attribute.<br>
+        What will you name the key?
+      </div>
+      <div class="nm-your-turn-row">
+        <input class="nm-your-input" id="yourInput" type="text" placeholder="your_attribute_name" maxlength="40" autocomplete="off" spellcheck="false">
+        <button class="nm-your-btn" id="yourBtn">Set it</button>
+      </div>
+      <div class="nm-your-echo" id="yourEcho"></div>
+    </div>
+
+    <!-- Three service panels showing inconsistent naming (hidden until learner submits) -->
     <div class="nm-services">
       <div class="nm-svc" id="svcA">
-        <div class="nm-svc-header"><span class="nm-svc-dot"></span> orders &mdash; team a</div>
+        <div class="nm-svc-header"><span class="nm-svc-dot"></span> orders - team a</div>
         <div class="nm-svc-body">
           <div class="nm-svc-label">telemetry emitted</div>
           <div class="nm-attr"><span class="nm-attr-key">statusCode</span> <span class="nm-attr-eq">=</span> <span class="nm-attr-val">200</span></div>
@@ -483,7 +610,7 @@
       </div>
 
       <div class="nm-svc" id="svcB">
-        <div class="nm-svc-header"><span class="nm-svc-dot"></span> payment &mdash; team b</div>
+        <div class="nm-svc-header"><span class="nm-svc-dot"></span> payment - team b</div>
         <div class="nm-svc-body">
           <div class="nm-svc-label">telemetry emitted</div>
           <div class="nm-attr"><span class="nm-attr-key">response_status</span> <span class="nm-attr-eq">=</span> <span class="nm-attr-val">"200"</span></div>
@@ -495,7 +622,7 @@
       </div>
 
       <div class="nm-svc" id="svcC">
-        <div class="nm-svc-header"><span class="nm-svc-dot"></span> inventory &mdash; team c</div>
+        <div class="nm-svc-header"><span class="nm-svc-dot"></span> inventory - team c</div>
         <div class="nm-svc-body">
           <div class="nm-svc-label">telemetry emitted</div>
           <div class="nm-attr"><span class="nm-attr-key">http_code</span> <span class="nm-attr-eq">=</span> <span class="nm-attr-val">200</span></div>
@@ -507,13 +634,16 @@
       </div>
     </div>
 
+    <!-- Comparison note (dynamic, set by JS) -->
+    <div class="nm-comparison" id="comparison"></div>
+
     <!-- Task prompt -->
     <div class="nm-task" id="taskPrompt">
       An incident: <strong>500 errors</strong> are spiking across all three services.<br>
       You need to find every request that returned a 500. Try querying for them.
     </div>
 
-    <!-- Query builder — the frustrating part -->
+    <!-- Query builder - the frustrating part -->
     <div class="nm-query-area" id="queryArea">
       <div class="nm-query-header">query builder</div>
       <div class="nm-query-body">
@@ -585,10 +715,10 @@
 
     <!-- Q1: Why is this hard? -->
     <div class="nm-question" id="q1">
-      <p>Why is querying across services so hard?</p>
+      <p>Each developer independently chose a different name for the same thing.<br>Why does this make querying so hard?</p>
       <div class="nm-opts">
         <button class="nm-opt" data-answer="wrong">The services are too slow</button>
-        <button class="nm-opt" data-answer="correct">Each team named the same thing differently</button>
+        <button class="nm-opt" data-answer="correct">No single query can match all three names at once</button>
         <button class="nm-opt" data-answer="wrong">The data is corrupted</button>
       </div>
       <div class="nm-fb" id="fb1"></div>
@@ -596,7 +726,7 @@
 
     <!-- Unified query reveal -->
     <div class="nm-unified-query" id="unifiedQuery">
-      <div class="nm-query-header" style="color: var(--accent-green);">one name &mdash; one query &mdash; all services</div>
+      <div class="nm-query-header" style="color: var(--accent-green);">one name, one query, all services</div>
       <div class="nm-unified-result">
         <div class="nm-result-line">
           <span class="nm-result-svc">Team A</span>
@@ -617,7 +747,7 @@
       </div>
     </div>
 
-    <!-- Q2: Application — Team D -->
+    <!-- Q2: Application - Team D -->
     <div class="nm-question" id="q2">
       <p>Team D joins. They need to record the HTTP request method.<br>Following the same naming pattern (dotted namespaces), what should they call it?</p>
       <div class="nm-opts">
@@ -642,22 +772,74 @@
 
   <script>
     (function () {
-      /* --- Phase 1: Stagger service panels into view --- */
-      var svcs = ['svcA', 'svcB', 'svcC'];
-      svcs.forEach(function (id, i) {
+      var learnerName = '';
+      var teamNames = ['statusCode', 'response_status', 'http_code'];
+
+      /* --- Phase 0: "Your turn" - learner names the attribute --- */
+      setTimeout(function () {
+        document.getElementById('yourTurn').classList.add('visible');
+      }, 400);
+
+      var yourInput = document.getElementById('yourInput');
+      var yourBtn = document.getElementById('yourBtn');
+      var yourEcho = document.getElementById('yourEcho');
+
+      yourBtn.addEventListener('click', function () {
+        learnerName = yourInput.value.trim();
+        if (!learnerName) {
+          yourInput.focus();
+          return;
+        }
+
+        /* Lock input */
+        yourInput.disabled = true;
+        yourBtn.disabled = true;
+        yourEcho.textContent = 'You chose: ' + learnerName;
+
+        /* Now reveal the three team panels */
+        var svcs = ['svcA', 'svcB', 'svcC'];
+        svcs.forEach(function (id, i) {
+          setTimeout(function () {
+            document.getElementById(id).classList.add('visible');
+          }, 400 + i * 350);
+        });
+
+        /* After panels visible, show comparison note */
         setTimeout(function () {
-          document.getElementById(id).classList.add('visible');
-        }, 300 + i * 350);
+          var comp = document.getElementById('comparison');
+          var matchedTeam = null;
+          var normalised = learnerName.toLowerCase().replace(/[\s\-_.]/g, '');
+          for (var t = 0; t < teamNames.length; t++) {
+            if (teamNames[t].toLowerCase().replace(/[\s\-_.]/g, '') === normalised) {
+              matchedTeam = String.fromCharCode(65 + t); /* A, B, or C */
+            }
+          }
+          if (matchedTeam) {
+            comp.textContent = 'You and Team ' + matchedTeam + ' agreed. But the others didn\u2019t. Four developers, three different names.';
+          } else {
+            comp.textContent = 'Four developers. Four names. All mean the same thing.';
+          }
+          comp.classList.add('visible');
+        }, 1800);
+
+        /* Show task prompt */
+        setTimeout(function () {
+          document.getElementById('taskPrompt').classList.add('visible');
+        }, 2800);
+
+        /* Show query area */
+        setTimeout(function () {
+          document.getElementById('queryArea').classList.add('visible');
+          setTimeout(function () {
+            document.getElementById('searchBox').value = queries[0].input;
+          }, 200);
+        }, 3400);
       });
 
-      /* After panels visible, show the task */
-      setTimeout(function () {
-        document.getElementById('taskPrompt').classList.add('visible');
-      }, 1700);
-
-      setTimeout(function () {
-        document.getElementById('queryArea').classList.add('visible');
-      }, 2300);
+      /* Allow Enter key to submit */
+      yourInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') yourBtn.click();
+      });
 
       /* --- Phase 2: Query frustration sequence --- */
       var queryStep = 0;
@@ -670,20 +852,12 @@
       var searchBox = document.getElementById('searchBox');
       var searchBtn = document.getElementById('searchBtn');
 
-      /* Pre-fill first query text */
-      setTimeout(function () {
-        searchBox.value = queries[0].input;
-      }, 2500);
-
       searchBtn.addEventListener('click', function () {
         if (queryStep >= queries.length) return;
 
         var current = queries[queryStep];
-
-        /* Type the query text into the box with a brief animation */
         searchBox.value = current.input;
 
-        /* Show results */
         setTimeout(function () {
           document.getElementById(current.resultId).classList.add('visible');
         }, 300);
@@ -691,13 +865,11 @@
         queryStep++;
 
         if (queryStep < queries.length) {
-          /* Update button and queue next query */
           searchBtn.textContent = 'Try next query';
           setTimeout(function () {
             searchBox.value = queries[queryStep].input;
           }, 800);
         } else {
-          /* All three done — show frustration, then question */
           searchBtn.disabled = true;
           searchBtn.textContent = 'No more queries';
 
@@ -711,18 +883,25 @@
         }
       });
 
-      /* --- Phase 3: Q1 — Why is querying hard? --- */
+      /* --- Phase 3: Q1 - Why is querying hard? --- */
       (function () {
         var q = document.getElementById('q1');
         var fb = document.getElementById('fb1');
         var opts = q.querySelectorAll('.nm-opt');
+        var attempts = 0;
+
+        var scaffolding = [
+          'Look at the query results. The data is there, the names just don\u2019t match.',
+          'Each team picked their own key name. Your query can only use one name at a time.',
+          'Three different attribute names means three separate queries. A single query can\u2019t match all three.'
+        ];
 
         opts.forEach(function (opt) {
           opt.addEventListener('click', function () {
             if (this.dataset.answer === 'correct') {
               this.classList.add('correct');
               opts.forEach(function (o) { o.classList.add('disabled'); });
-              fb.textContent = 'Three names, two data types, zero consistency.';
+              fb.textContent = 'Exactly. Three names, zero consistency \u2014 no single query can find them all.';
               fb.className = 'nm-fb nm-fb--correct';
 
               /* Reveal the fix: show unified naming on each service panel */
@@ -745,8 +924,9 @@
               }, 2600);
             } else {
               this.classList.add('wrong');
-              fb.textContent = 'Look at the query results. The data is there — the names just don\'t match.';
+              fb.textContent = scaffolding[Math.min(attempts, scaffolding.length - 1)];
               fb.className = 'nm-fb nm-fb--wrong';
+              attempts++;
               var self = this;
               setTimeout(function () { self.classList.remove('wrong'); }, 600);
             }
@@ -754,7 +934,7 @@
         });
       })();
 
-      /* --- Phase 4: Q2 — Team D application --- */
+      /* --- Phase 4: Q2 - Team D application --- */
       (function () {
         var q = document.getElementById('q2');
         var fb = document.getElementById('fb2');

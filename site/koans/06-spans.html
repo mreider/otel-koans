@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koan 6: Steps in a Trace — OpenTelemetry Koans</title>
+  <title>Koan 6: Steps in a Trace - OpenTelemetry Koans</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
@@ -353,7 +353,7 @@
       Each step has a story.
     </div>
 
-    <!-- Waterfall visualization — no mention of "span" anywhere -->
+    <!-- Waterfall visualization - no mention of "span" anywhere -->
     <div class="wf-scene">
       <div class="wf-scene-header">
         <span>trace: order #8842</span>
@@ -367,7 +367,7 @@
             <span>Duration</span>
           </div>
 
-          <!-- Row 0: gateway (root) — full width, 0–210ms -->
+          <!-- Row 0: gateway (root) - full width, 0-210ms -->
           <div class="waterfall-row depth-0" id="row-0">
             <div class="waterfall-svc">
               <div class="waterfall-svc-dot dot-gateway"></div>
@@ -381,7 +381,7 @@
             <div class="waterfall-dur">210ms</div>
           </div>
 
-          <!-- Row 1: api — child of gateway, 12ms–195ms => left ~5.7%, width ~87.1% -->
+          <!-- Row 1: api - child of gateway, 12ms-195ms => left ~5.7%, width ~87.1% -->
           <div class="waterfall-row depth-1" id="row-1">
             <div class="waterfall-svc">
               <div class="waterfall-svc-dot dot-api"></div>
@@ -395,7 +395,7 @@
             <div class="waterfall-dur">183ms</div>
           </div>
 
-          <!-- Row 2: orders — child of api, 28ms–160ms => left ~13.3%, width ~62.9% -->
+          <!-- Row 2: orders - child of api, 28ms-160ms => left ~13.3%, width ~62.9% -->
           <div class="waterfall-row depth-2" id="row-2">
             <div class="waterfall-svc">
               <div class="waterfall-svc-dot dot-orders"></div>
@@ -409,7 +409,7 @@
             <div class="waterfall-dur">132ms</div>
           </div>
 
-          <!-- Row 3: database — child of orders, 30ms–210ms => left ~14.3%, width ~85.7%
+          <!-- Row 3: database - child of orders, 30ms-210ms => left ~14.3%, width ~85.7%
                This is the suspicious one: 180ms, dominates the trace -->
           <div class="waterfall-row depth-3" id="row-3">
             <div class="waterfall-svc">
@@ -447,7 +447,7 @@
       <div class="wf-status" id="status"></div>
     </div>
 
-    <!-- Q1: Count the operations — requires looking at the visual -->
+    <!-- Q1: Count the operations - requires looking at the visual -->
     <div class="wf-question" id="q1">
       <p>This trace crossed four services. Look at the bars above. How many individual operations can you count?</p>
       <div class="wf-opts">
@@ -460,10 +460,10 @@
 
     <!-- Mid-insight after Q1 -->
     <div class="wf-mid-insight" id="mid1">
-      Each of those bars represents one step &mdash; one unit of work within the trace.
+      Each of those bars represents one step: one unit of work within the trace.
     </div>
 
-    <!-- Q2: Reason about what individual bars mean — diagnostic value -->
+    <!-- Q2: Reason about what individual bars mean - diagnostic value -->
     <div class="wf-question" id="q2">
       <p>The database bar took 180ms out of the total 210ms. What does this tell you?</p>
       <div class="wf-opts">
@@ -479,7 +479,7 @@
       By breaking a trace into its individual steps, you can see exactly where time is spent.
     </div>
 
-    <!-- Q3: Vocabulary — comes AFTER conceptual understanding -->
+    <!-- Q3: Vocabulary - comes AFTER conceptual understanding -->
     <div class="wf-question" id="q3">
       <p>Each of these individual steps in a trace has a name in OpenTelemetry. What is it called?</p>
       <div class="wf-opts">

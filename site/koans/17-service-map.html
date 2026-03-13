@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koan 17: Service Maps — OpenTelemetry Koans</title>
+  <title>Koan 17: Service Maps - OpenTelemetry Koans</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
@@ -134,7 +134,7 @@
       min-height: 1.8em;
     }
 
-    /* SVG map panel (right) — soft node strokes, transparent fills */
+    /* SVG map panel (right) - soft node strokes, transparent fills */
     .map-panel {
       background: var(--bg-glass);
       border: 1px solid var(--border);
@@ -471,7 +471,7 @@
 
     <div class="koan-text">
       No one drew the map.<br>
-      The requests drew it themselves &mdash;<br>
+      The requests drew it themselves.<br>
       each call a line, each service a point,<br>
       until the shape of the system appeared.
     </div>
@@ -481,7 +481,7 @@
       <p>You have 6 services but no architecture diagram. You do have trace data from production. Can you figure out how the services are connected?</p>
       <div class="map-opts">
         <button class="map-opt" data-answer="wrong">No, you need documentation</button>
-        <button class="map-opt" data-answer="correct">Yes &mdash; each trace shows which services called which</button>
+        <button class="map-opt" data-answer="correct">Yes, each trace shows which services called which</button>
         <button class="map-opt" data-answer="wrong">Only if you read the source code</button>
       </div>
       <div class="map-fb" id="fb1"></div>
@@ -686,7 +686,7 @@
               }, 800);
             } else {
               this.classList.add('wrong');
-              fb1.textContent = 'Think about what a trace records \u2014 it captures the path a request takes through services.';
+              fb1.textContent = 'Think about what a trace records: it captures the path a request takes through services.';
               fb1.className = 'map-fb map-fb--wrong';
               var self = this;
               setTimeout(function () { self.classList.remove('wrong'); }, 600);
@@ -826,7 +826,7 @@
               opt.classList.add('correct');
               opts.forEach(function (o) { o.classList.add('disabled'); });
               if (actual.length === 0) {
-                predFb.textContent = 'Right \u2014 repeated traces thicken existing edges, showing call frequency.';
+                predFb.textContent = 'Right. Repeated traces thicken existing edges, showing call frequency.';
               } else {
                 predFb.textContent = 'Correct! You predicted the new connection.';
               }
@@ -838,7 +838,7 @@
               }, 1200);
             } else {
               opt.classList.add('wrong');
-              predFb.textContent = 'Look at the trace chain carefully \u2014 which pair of services isn\u2019t on the map yet?';
+              predFb.textContent = 'Look at the trace chain carefully. Which pair of services isn\u2019t on the map yet?';
               predFb.className = 'pred-fb pred-fb--wrong';
               setTimeout(function () { opt.classList.remove('wrong'); }, 500);
             }
@@ -876,8 +876,8 @@
             unlockTrace(next, true);
             traceHint.textContent = 'Click Trace ' + (next + 1) + ' to process it.';
           } else {
-            /* All traces processed — map is complete */
-            traceHint.textContent = 'All 5 traces processed \u2014 map complete.';
+            /* All traces processed - map is complete */
+            traceHint.textContent = 'All 5 traces processed. Map complete.';
             legend.classList.add('visible');
             setTimeout(function () {
               document.getElementById('q2').classList.add('visible');
@@ -945,7 +945,7 @@
             if (this.dataset.answer === 'correct') {
               this.classList.add('correct');
               opts.forEach(function (o) { o.classList.add('disabled'); });
-              fb2.textContent = 'Every trace passes through api \u2014 it receives 5 incoming calls. You can see it in the map you built.';
+              fb2.textContent = 'Every trace passes through api. It receives 5 incoming calls. You can see it in the map you built.';
               fb2.className = 'map-fb map-fb--correct';
               setTimeout(function () {
                 document.getElementById('insight').classList.add('visible');

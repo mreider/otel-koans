@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Koan 14: The Hub — OpenTelemetry Koans</title>
+  <title>Koan 14: The Hub - OpenTelemetry Koans</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
@@ -150,7 +150,7 @@
       z-index: 2;
     }
 
-    /* The hub box (invisible until summoned) — dashed drop zone style */
+    /* The hub box (invisible until summoned) - dashed drop zone style */
     .hub-box {
       border: 2px dashed rgba(139, 148, 158, 0.5);
       border-radius: 1em;
@@ -242,7 +242,7 @@
       animation: pulse-glow 1.4s ease infinite;
     }
 
-    /* SVG overlay for connection lines — softer strokes, glow on connections */
+    /* SVG overlay for connection lines - softer strokes, glow on connections */
     .diagram-arrow-svg {
       position: absolute;
       top: 0;
@@ -599,9 +599,9 @@
             <!-- Right column: backends -->
             <div class="arch-column" id="colBackends">
               <div class="arch-column-label">backends</div>
-              <div class="backend-box" id="be0"><span class="backend-dot"></span>Jaeger</div>
-              <div class="backend-box" id="be1"><span class="backend-dot"></span>Prometheus</div>
-              <div class="backend-box" id="be2"><span class="backend-dot"></span>Loki</div>
+              <div class="backend-box" id="be0"><span class="backend-dot"></span>Jaeger (traces)</div>
+              <div class="backend-box" id="be1"><span class="backend-dot"></span>Prometheus (metrics)</div>
+              <div class="backend-box" id="be2"><span class="backend-dot"></span>Loki (logs)</div>
             </div>
           </div>
 
@@ -657,7 +657,7 @@
     <!-- Narrative: name reveal -->
     <div class="narrative" id="narr2">
       <p>This hub is called the <strong style="color: var(--accent-blue);">OpenTelemetry Collector</strong>.</p>
-      <p>It has three internal stages. Based on its position in the diagram &mdash; between services and backends &mdash; what do you think each stage does?</p>
+      <p>It has three internal stages. Based on its position in the diagram, between services and backends, what do you think each stage does?</p>
     </div>
 
     <!-- Q3: Match stages to descriptions -->
@@ -1002,7 +1002,7 @@
           } else {
             this.classList.add('wrong');
             if (this.id === 'q2a') {
-              fb2.textContent = 'The hub forwards all telemetry \u2014 nothing is deleted.';
+              fb2.textContent = 'The hub forwards all telemetry. Nothing is deleted.';
             } else {
               fb2.textContent = 'The hub adds a hop, so latency doesn\'t improve. Think about connections.';
             }
