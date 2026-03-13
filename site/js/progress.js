@@ -121,6 +121,16 @@
 
   nav.appendChild(dotsWrap);
   nav.appendChild(resetBtn);
+
+  // Pull the music toggle into the bar (created by music.js which loads first)
+  var musicBtn = document.querySelector('.music-toggle');
+  if (musicBtn) {
+    var divider = document.createElement('div');
+    divider.className = 'progress-divider';
+    nav.appendChild(divider);
+    nav.appendChild(musicBtn);
+  }
+
   document.body.appendChild(nav);
 
   function updateDots() {

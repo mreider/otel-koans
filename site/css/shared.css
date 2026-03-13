@@ -258,7 +258,7 @@ body {
   line-height: 1.7;
 }
 
-/* Music toggle */
+/* Music toggle - standalone fallback (before progress-nav moves it) */
 .music-toggle {
   position: fixed;
   bottom: 1rem;
@@ -294,40 +294,75 @@ body {
   color: var(--text-secondary);
 }
 
-/* Progress navigation */
+/* Music toggle inside the unified bar */
+.progress-nav .music-toggle {
+  position: static;
+  width: auto;
+  height: auto;
+  background: none;
+  border: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 0;
+  opacity: 0.7;
+  font-size: 1rem;
+  color: var(--text-muted);
+  padding: 0 0.1rem;
+}
+
+.progress-nav .music-toggle:hover {
+  opacity: 1;
+  transform: none;
+  color: var(--text-primary);
+}
+
+.progress-nav .music-toggle.music-on {
+  opacity: 1;
+  color: var(--text-secondary);
+}
+
+/* Divider between bar sections */
+.progress-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--border-subtle);
+  flex-shrink: 0;
+}
+
+/* Progress navigation - unified bottom bar */
 .progress-nav {
   position: fixed;
-  bottom: 10px;
+  bottom: 12px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 90;
+  z-index: 100;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.35rem 0.75rem;
+  gap: 0.7rem;
+  padding: 0.45rem 1rem;
   background: var(--bg-glass);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--border-subtle);
   border-radius: 2em;
-  opacity: 0.55;
+  opacity: 0.6;
   transition: opacity 0.4s var(--ease-smooth);
 }
 
 .progress-nav:hover {
-  opacity: 0.9;
+  opacity: 0.95;
 }
 
 .progress-dots {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .progress-dot {
   display: block;
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--border);
   transition: all 0.3s var(--ease-spring);
@@ -341,7 +376,7 @@ body {
 
 .progress-dot.current {
   background: var(--accent-blue);
-  box-shadow: 0 0 4px rgba(88, 166, 255, 0.4);
+  box-shadow: 0 0 5px rgba(88, 166, 255, 0.4);
   transform: scale(1.3);
 }
 
@@ -356,18 +391,18 @@ body {
 .progress-reset {
   background: none;
   border: none;
-  color: var(--text-muted);
-  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-size: 1rem;
   cursor: pointer;
   padding: 0 0.15rem;
   line-height: 1;
-  opacity: 0.6;
+  opacity: 0.7;
   transition: all 0.3s var(--ease-spring);
 }
 
 .progress-reset:hover {
   opacity: 1;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   transform: rotate(-45deg);
 }
 
