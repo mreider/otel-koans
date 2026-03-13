@@ -310,12 +310,12 @@ body {
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-subtle);
   border-radius: 2em;
-  opacity: 0.5;
+  opacity: 0.85;
   transition: opacity 0.4s var(--ease-smooth);
 }
 
 .progress-nav:hover {
-  opacity: 0.95;
+  opacity: 1;
 }
 
 /* Prev / Next arrows */
@@ -422,13 +422,13 @@ body {
   font-size: 0.55rem;
   color: var(--text-muted);
   letter-spacing: 0.04em;
-  opacity: 0;
+  opacity: 0.3;
   transition: opacity 0.4s var(--ease-smooth);
   pointer-events: none;
 }
 
 .progress-nav:hover .site-copyright {
-  opacity: 0.4;
+  opacity: 0.5;
 }
 
 /* Resume prompt on index */
