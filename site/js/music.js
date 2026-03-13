@@ -33,14 +33,17 @@
 
   function updateBtn() {
     var on = !audio.paused;
-    btn.innerHTML = '\u266A<span class="music-bars"><span></span><span></span><span></span></span>';
+    btn.innerHTML = '\u266A<span class="music-float-notes">' +
+      '<span class="music-float">\u266A</span>' +
+      '<span class="music-float">\u266B</span>' +
+      '<span class="music-float">\u266A</span>' +
+      '</span>';
     btn.classList.toggle('music-on', on);
   }
 
   function startPlayback() {
     var savedTime = parseFloat(localStorage.getItem(KEY_TIME) || '0');
     if (savedTime && isFinite(savedTime)) {
-      // Set immediately - if duration isn't loaded yet, also set once metadata loads
       try { audio.currentTime = savedTime; } catch (e) {}
       audio.addEventListener('loadedmetadata', function handler() {
         if (savedTime < audio.duration) {
@@ -52,8 +55,9 @@
     audio.play().then(updateBtn).catch(function () {});
   }
 
-  // Toggle on click
-  btn.addEventListener('click', function () {
+  // Toggle only on explicit button click
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
     if (audio.paused) {
       localStorage.setItem(KEY_ENABLED, '1');
       startPlayback();
@@ -64,21 +68,10 @@
     updateBtn();
   });
 
-  // Music is OFF by default. Only auto-start for returning users who enabled it.
-  var userEnabled = localStorage.getItem(KEY_ENABLED) === '1';
-
-  if (userEnabled) {
+  // Music is OFF by default. Only auto-play for returning users who enabled it.
+  // No click/keydown listeners — the user clicks the button if they want music.
+  if (localStorage.getItem(KEY_ENABLED) === '1') {
     startPlayback();
-    // Fallback: start on first user interaction (browser autoplay policy)
-    var autoStart = function () {
-      if (audio.paused && localStorage.getItem(KEY_ENABLED) === '1') {
-        startPlayback();
-      }
-      document.removeEventListener('click', autoStart, true);
-      document.removeEventListener('keydown', autoStart, true);
-    };
-    document.addEventListener('click', autoStart, true);
-    document.addEventListener('keydown', autoStart, true);
   }
 
   updateBtn();

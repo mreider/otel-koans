@@ -228,8 +228,9 @@ body {
   bottom: 1rem;
   right: 1rem;
   z-index: 100;
+  width: 2rem;
   height: 2rem;
-  border-radius: 1em;
+  border-radius: 50%;
   border: 1px solid var(--border-subtle);
   background: var(--bg-glass);
   backdrop-filter: blur(8px);
@@ -239,12 +240,12 @@ body {
   cursor: pointer;
   opacity: 0.55;
   transition: all 0.3s var(--ease-spring);
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  padding: 0 0.6rem;
+  padding: 0;
   line-height: 1;
+  overflow: visible;
 }
 
 .music-toggle:hover {
@@ -258,45 +259,49 @@ body {
   color: var(--text-secondary);
 }
 
-/* Equalizer bars */
-.music-bars {
-  display: inline-flex;
-  align-items: flex-end;
-  gap: 1.5px;
-  height: 10px;
+/* Floating music notes — cartoon ZZz style */
+.music-float-notes {
+  position: absolute;
+  bottom: 75%;
+  left: 40%;
+  pointer-events: none;
+  width: 0;
+  height: 0;
 }
 
-.music-bars span {
-  display: block;
-  width: 1.5px;
-  background: currentColor;
-  border-radius: 0.5px;
-  transform-origin: bottom;
+.music-float {
+  position: absolute;
+  font-size: 0.5rem;
+  opacity: 0;
+  animation: note-float 4s ease-out infinite;
 }
 
-/* Off state: gentle breathing to invite interaction */
-.music-bars span:nth-child(1) { height: 3px; animation: music-breathe 2.5s ease-in-out infinite; }
-.music-bars span:nth-child(2) { height: 5px; animation: music-breathe 2.5s ease-in-out 0.4s infinite; }
-.music-bars span:nth-child(3) { height: 2.5px; animation: music-breathe 2.5s ease-in-out 0.8s infinite; }
+.music-float:nth-child(1) { animation-delay: 0s; }
+.music-float:nth-child(2) { animation-delay: 1.4s; font-size: 0.4rem; }
+.music-float:nth-child(3) { animation-delay: 2.8s; font-size: 0.45rem; }
 
-/* On state: active dancing */
-.music-on .music-bars span:nth-child(1) { height: 4px; animation: music-dance 0.8s ease-in-out infinite; }
-.music-on .music-bars span:nth-child(2) { height: 6px; animation: music-dance 0.55s ease-in-out 0.15s infinite; }
-.music-on .music-bars span:nth-child(3) { height: 3px; animation: music-dance 0.7s ease-in-out 0.3s infinite; }
-
-@keyframes music-breathe {
-  0%, 100% { transform: scaleY(1); opacity: 0.4; }
-  50% { transform: scaleY(1.5); opacity: 0.7; }
+@keyframes note-float {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  8%   { opacity: 0.45; }
+  50%  { opacity: 0.3; }
+  100% { transform: translate(8px, -20px) rotate(20deg); opacity: 0; }
 }
 
-@keyframes music-dance {
-  0%, 100% { transform: scaleY(0.4); }
-  50% { transform: scaleY(1.8); }
+/* When playing: notes drift a bit more and are slightly brighter */
+.music-on .music-float:nth-child(1) { animation: note-float-active 3s ease-out infinite; animation-delay: 0s; }
+.music-on .music-float:nth-child(2) { animation: note-float-active 3s ease-out infinite; animation-delay: 1s; font-size: 0.4rem; }
+.music-on .music-float:nth-child(3) { animation: note-float-active 3s ease-out infinite; animation-delay: 2s; font-size: 0.45rem; }
+
+@keyframes note-float-active {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  8%   { opacity: 0.6; }
+  50%  { opacity: 0.4; }
+  100% { transform: translate(10px, -24px) rotate(25deg); opacity: 0; }
 }
 
 /* Music toggle inside the unified bar */
 .progress-nav .music-toggle {
-  position: static;
+  position: relative;
   width: auto;
   height: auto;
   background: none;
@@ -308,6 +313,7 @@ body {
   font-size: 0.95rem;
   color: var(--text-muted);
   padding: 0 0.1rem;
+  overflow: visible;
 }
 
 .progress-nav .music-toggle:hover {
