@@ -141,18 +141,14 @@
       var pi = parseInt(p);
       if (prog[p] >= 1 && pi > furthest) furthest = pi;
     }
-    // If user has been past koan 0, offer to continue from where they left off
+    // If user has been past koan 0, replace "Begin the path" with a resume link
     if (furthest > 0) {
-      // Remove the default "Begin the path" link since we're showing a resume link instead
       var beginLink = document.querySelector('.opening-continue');
-      if (beginLink) beginLink.remove();
-
-      var cont = document.createElement('div');
-      cont.className = 'resume-prompt';
-      cont.innerHTML = '<a href="' + KOAN_ORDER[furthest].file + '">Continue: ' +
-        KOAN_ORDER[furthest].title + ' →</a>';
-      var opening = document.querySelector('.opening');
-      if (opening) opening.appendChild(cont);
+      if (beginLink) {
+        beginLink.classList.add('visible');
+        beginLink.innerHTML = '<a href="' + KOAN_ORDER[furthest].file + '">Continue: ' +
+          KOAN_ORDER[furthest].title + ' →</a>';
+      }
     }
   }
 })();
