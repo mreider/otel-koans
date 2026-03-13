@@ -462,14 +462,14 @@
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      max-width: 520px;
+      max-width: 640px;
       margin: 0 auto;
     }
 
     .match-row {
       display: grid;
-      grid-template-columns: 110px 1fr;
-      gap: 0.75rem;
+      grid-template-columns: 100px 1fr;
+      gap: 0.6rem;
       align-items: center;
     }
 
@@ -491,19 +491,19 @@
     .match-options {
       display: flex;
       gap: 0.4rem;
+      flex-wrap: wrap;
     }
 
     .match-opt {
       font-family: var(--font-mono);
-      font-size: 0.8rem;
-      padding: 0.4rem 0.7rem;
+      font-size: 0.78rem;
+      padding: 0.4rem 0.6rem;
       border: 1px solid var(--border);
       border-radius: 0.5em;
       background: var(--bg-glass);
       color: var(--text-secondary);
       cursor: pointer;
       transition: all 0.3s var(--ease-spring);
-      white-space: nowrap;
     }
 
     .match-opt:hover {
@@ -719,6 +719,23 @@
       var allPaths = [];
       var phase = 'direct-3'; /* direct-3, direct-4, hub, named, matched */
       var particleTimers = [];
+
+      /* Utility: detect when a smooth scroll finishes */
+      function waitForScrollEnd(cb) {
+        var lastY = window.scrollY;
+        var stable = 0;
+        function check() {
+          if (Math.abs(window.scrollY - lastY) < 1) {
+            stable++;
+            if (stable > 10) { cb(); return; }
+          } else {
+            stable = 0;
+          }
+          lastY = window.scrollY;
+          requestAnimationFrame(check);
+        }
+        requestAnimationFrame(check);
+      }
 
       function getSvcEls() {
         return Array.prototype.slice.call(colServices.querySelectorAll('.svc-box'));
@@ -976,23 +993,37 @@
             fb2.innerHTML = '4 + 3 = 7 connections instead of 12. With 10 services and 5 backends: 15 instead of 50.';
             fb2.className = 'cq-fb cq-fb--correct';
 
-            /* Show the hub in the diagram */
-            showHub();
-
-            /* Show name-reveal narrative */
+            /* Cinematic reveal: pan up to diagram, transform, pan back down */
             setTimeout(function () {
-              document.getElementById('narr2').classList.add('visible');
-            }, 1400);
+              var scene = document.querySelector('.collector-scene');
+              scene.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-            /* Reveal the collector name + internals */
-            setTimeout(function () {
-              revealName();
-            }, 2000);
+              waitForScrollEnd(function () {
+                /* Hub appears, messy lines become clean */
+                showHub();
 
-            /* Show Q3: matching */
-            setTimeout(function () {
-              document.getElementById('q3').classList.add('visible');
-            }, 3200);
+                setTimeout(function () {
+                  /* Reveal "OTel Collector" name + internal stages */
+                  revealName();
+
+                  setTimeout(function () {
+                    /* Make narrative visible, then pan back down */
+                    var narr2 = document.getElementById('narr2');
+                    narr2.classList.add('visible');
+
+                    setTimeout(function () {
+                      narr2.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                      waitForScrollEnd(function () {
+                        setTimeout(function () {
+                          document.getElementById('q3').classList.add('visible');
+                        }, 500);
+                      });
+                    }, 400);
+                  }, 1800);
+                }, 1200);
+              });
+            }, 800);
           } else {
             this.classList.add('wrong');
             if (this.id === 'q2a') {
