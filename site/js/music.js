@@ -33,7 +33,7 @@
 
   function updateBtn() {
     var on = !audio.paused;
-    btn.textContent = on ? '\u266B' : '\u266A';
+    btn.innerHTML = '\u266A<span class="music-bars"><span></span><span></span><span></span></span>';
     btn.classList.toggle('music-on', on);
   }
 
@@ -64,16 +64,14 @@
     updateBtn();
   });
 
-  // Default behavior: music starts on first interaction unless user turned it off
-  var userDisabled = localStorage.getItem(KEY_ENABLED) === '0';
+  // Music is OFF by default. Only auto-start for returning users who enabled it.
+  var userEnabled = localStorage.getItem(KEY_ENABLED) === '1';
 
-  if (!userDisabled) {
-    // Try playing immediately
+  if (userEnabled) {
     startPlayback();
     // Fallback: start on first user interaction (browser autoplay policy)
     var autoStart = function () {
-      if (audio.paused && localStorage.getItem(KEY_ENABLED) !== '0') {
-        localStorage.setItem(KEY_ENABLED, '1');
+      if (audio.paused && localStorage.getItem(KEY_ENABLED) === '1') {
         startPlayback();
       }
       document.removeEventListener('click', autoStart, true);

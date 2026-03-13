@@ -323,6 +323,7 @@
     <div class="failed-span">
       <div class="failed-span-header">
         <span>trace: order #8842</span>
+        <span>start: 10:42:17.204</span>
         <span>trace_id: a1b2c3d4e5f6</span>
       </div>
       <div class="failed-span-body">
@@ -376,10 +377,10 @@
 
     <!-- Q1: Feel the gap -->
     <div class="k7-question visible" id="q1">
-      <p>Can the trace alone tell you the specific error message?</p>
+      <p>From this trace, can you determine the specific error that caused the failure?</p>
       <div class="k7-opts">
-        <button class="k7-opt" data-answer="wrong">Yes</button>
-        <button class="k7-opt" data-answer="correct">No, traces show the path and timing, not the full detail of what happened</button>
+        <button class="k7-opt" data-answer="wrong">Yes, the ERROR status tells me what went wrong</button>
+        <button class="k7-opt" data-answer="correct">No — I can see it failed, but not why</button>
       </div>
       <div class="k7-fb" id="fb1"></div>
     </div>
@@ -501,8 +502,8 @@
       // Q1: Feel the gap
       setupQuiz(
         'q1', 'fb1',
-        'The trace shows WHERE and WHEN, but not the specific error details. Something else must capture that.',
-        'A trace records path and timing. Look at the span: it says ERROR, but does it say which error?',
+        'You can see the database span failed at 10:42:17 — but not why. The trace shows where and when. Something else captured the details.',
+        'Look again — the span says ERROR, but does it say which error? A timeout? A connection refused? A constraint violation?',
         function () {
           // Show narrator2, then evidence, then Q2
           var n2 = document.getElementById('narrator2');

@@ -326,6 +326,14 @@
       margin-bottom: 0.5rem;
     }
 
+    .signal-card-time {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      opacity: 0.7;
+    }
+
     .signal-card-attr {
       font-family: var(--font-mono);
       font-size: 0.85rem;
@@ -485,6 +493,7 @@
           <div class="signal-card-header signal-card-header--span">span</div>
           <div class="signal-card-body">
             <div class="signal-card-name">INSERT orders &middot; 85ms</div>
+            <div class="signal-card-time">10:42:17.231 &rarr; 10:42:17.316</div>
             <div class="signal-card-attr"><span class="sk">db.system</span> <span class="se">=</span> <span class="sv">"postgresql"</span></div>
             <div class="signal-card-attr"><span class="sk">db.name</span> <span class="se">=</span> <span class="sv">"orders"</span></div>
             <div class="signal-card-attr"><span class="sk">db.operation</span> <span class="se">=</span> <span class="sv">"INSERT"</span></div>
@@ -494,6 +503,7 @@
           <div class="signal-card-header signal-card-header--log">log</div>
           <div class="signal-card-body">
             <div class="signal-card-name">ERROR: pool exhausted</div>
+            <div class="signal-card-time">10:42:17.384</div>
             <div class="signal-card-attr"><span class="sk">pool.name</span> <span class="se">=</span> <span class="sv">"orders"</span></div>
             <div class="signal-card-attr"><span class="sk">pool.max</span> <span class="se">=</span> <span class="sv">10</span></div>
             <div class="signal-card-attr"><span class="sk">pool.active</span> <span class="se">=</span> <span class="sv">10</span></div>

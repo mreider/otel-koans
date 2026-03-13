@@ -398,7 +398,7 @@
 
     <!-- Labeling exercise: appears after animation -->
     <div class="label-exercise" id="labelExercise">
-      <div class="label-exercise-title">Name each chart based on its behavior</div>
+      <div class="label-exercise-title">Match each metric to its type</div>
       <div class="label-row">
         <div class="label-group">
           <div class="label-group-title">Chart A</div>
@@ -449,7 +449,7 @@
     </div>
 
     <div class="types-insight" id="insight">
-      <p>Counter counts. Gauge measures a current level. Histogram reveals the shape.</p>
+      <p>Counter tracks a running total. Gauge measures a current level. Histogram reveals the shape.</p>
       <p>Choose the type that matches the question you need to answer.</p>
       <a href="05-trace.html">Continue &rarr;</a>
     </div>
@@ -613,10 +613,17 @@
         // Chart C: histogram bars (orange)
         animateHistogram(200);
 
+        // Reveal what each chart is measuring alongside the animation
+        setTimeout(function () {
+          document.getElementById('scenarioA').classList.add('visible');
+          document.getElementById('scenarioB').classList.add('visible');
+          document.getElementById('scenarioC').classList.add('visible');
+        }, 800);
+
         // Show labeling exercise after animation completes
         var totalTime = 200 + 10 * 200 + 500;
         setTimeout(function () {
-          status.textContent = 'Three behaviors. Can you name them?';
+          status.textContent = 'Three metrics, three behaviors. Can you name them?';
           labelExercise.classList.add('visible');
         }, totalTime);
       });
@@ -625,12 +632,12 @@
       var wrongCounts = { selectA: 0, selectB: 0, selectC: 0 };
       var hints = {
         selectA: [
-          'Look at the direction. Does Chart A ever decrease?',
-          'This line only goes up. It accumulates over time.'
+          'Total requests is a running total. What type tracks cumulative counts?',
+          'Each new request adds to the total. This metric accumulates over time.'
         ],
         selectB: [
-          'Watch how Chart B moves. Does it stay in one direction?',
-          'This value rises and falls. It reflects a current level.'
+          'Active connections can rise and fall. What type tracks a current level?',
+          'This value reflects a snapshot of right now \u2014 not a total, not a distribution.'
         ],
         selectC: [
           'Chart C doesn\'t show a line over time. What does it show instead?',
@@ -711,11 +718,6 @@
             nameC.textContent = 'Histogram';
             nameC.classList.add('revealed-histogram');
             document.getElementById('headerC').classList.add('revealed');
-
-            // Reveal scenario context for each chart
-            document.getElementById('scenarioA').classList.add('visible');
-            document.getElementById('scenarioB').classList.add('visible');
-            document.getElementById('scenarioC').classList.add('visible');
           }, 400);
 
           // Show final question
