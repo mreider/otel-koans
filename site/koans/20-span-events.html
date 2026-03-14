@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="koan20.pageTitle">Koan 20: Span Events - OpenTelemetry Koans</title>
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../img/apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <meta name="theme-color" content="#0a0e14">
+  <link rel="stylesheet" href="../css/shared.css">
+  <script src="../js/i18n.js"></script>
+  <style>
+    /* Scenario panel */
+    .scenario-panel {
+      max-width: 600px;
+      margin: 0 auto 2rem;
+      text-align: center;
+    }
+
+    .scenario-header {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+    }
+
+    .scenario-body {
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Span timeline scene */
+    .se-scene {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: 1em;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-inset);
+      opacity: 0;
+      transition: opacity 0.6s;
+    }
+
+    .se-scene.visible { opacity: 1; }
+
+    .se-scene-header {
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .se-scene-body {
+      padding: 1.5rem;
+    }
+
+    .se-approach-label {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.75rem;
+    }
+
+    /* Span bar shared */
+    .se-timeline {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .se-timeline:last-child {
+      margin-bottom: 0;
+    }
+
+    .se-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .se-bar-name {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-primary);
+      width: 100px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .se-bar-track {
+      flex: 1;
+      height: 24px;
+      position: relative;
+      background: var(--bg-glass);
+      border-radius: 0.5em;
+    }
+
+    .se-bar {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      border-radius: 0.5em;
+      opacity: 0;
+      transition: opacity 0.5s var(--ease-smooth);
+    }
+
+    .se-bar.visible {
+      opacity: 1;
+    }
+
+    .se-bar--checkout {
+      background: rgba(63, 185, 80, 0.4);
+    }
+
+    .se-bar--cache {
+      background: rgba(210, 153, 34, 0.5);
+    }
+
+    .se-bar--retry {
+      background: rgba(248, 81, 73, 0.5);
+    }
+
+    .se-bar--work {
+      background: rgba(63, 185, 80, 0.3);
+    }
+
+    .se-bar-dur {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      min-width: 50px;
+      flex-shrink: 0;
+    }
+
+    /* Event diamond markers */
+    .se-event-marker {
+      position: absolute;
+      top: 50%;
+      width: 10px;
+      height: 10px;
+      transform: translate(-50%, -50%) rotate(45deg);
+      border: 2px solid;
+      background: var(--bg-glass);
+      z-index: 2;
+      opacity: 0;
+      transition: opacity 0.4s var(--ease-smooth);
+    }
+
+    .se-event-marker.visible {
+      opacity: 1;
+    }
+
+    .se-event-marker--cache {
+      border-color: var(--accent-orange);
+      box-shadow: 0 0 8px rgba(210, 153, 34, 0.4);
+    }
+
+    .se-event-marker--retry {
+      border-color: var(--accent-red);
+      box-shadow: 0 0 8px rgba(248, 81, 73, 0.4);
+    }
+
+    /* Event label below timeline */
+    .se-event-labels {
+      display: flex;
+      position: relative;
+      margin-left: calc(100px + 0.75rem);
+      height: 1.6rem;
+    }
+
+    .se-event-label {
+      position: absolute;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.4s var(--ease-smooth);
+      white-space: nowrap;
+    }
+
+    .se-event-label.visible {
+      opacity: 1;
+    }
+
+    .se-event-label--cache {
+      color: var(--accent-orange);
+    }
+
+    .se-event-label--retry {
+      color: var(--accent-red);
+    }
+
+    /* Time axis */
+    .se-axis {
+      display: flex;
+      justify-content: space-between;
+      margin-left: calc(100px + 0.75rem);
+      margin-right: 50px;
+      margin-top: 0.25rem;
+      padding-top: 0.35rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .se-axis span {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    /* Divider between approaches */
+    .se-divider {
+      border: none;
+      border-top: 1px dashed var(--border-subtle);
+      margin: 1.5rem 0;
+    }
+
+    /* Approach verdict badges */
+    .se-verdict {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+      opacity: 0;
+      transition: opacity 0.5s var(--ease-smooth);
+    }
+
+    .se-verdict.visible { opacity: 1; }
+
+    .se-verdict-badge {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 1em;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      flex-shrink: 0;
+    }
+
+    .se-verdict-badge--cluttered {
+      border: 1px solid rgba(248, 81, 73, 0.3);
+      color: var(--accent-red);
+      background: rgba(248, 81, 73, 0.06);
+    }
+
+    .se-verdict-badge--clean {
+      border: 1px solid rgba(63, 185, 80, 0.3);
+      color: var(--accent-green);
+      background: rgba(63, 185, 80, 0.06);
+    }
+
+    .se-verdict-text {
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    /* Question panels */
+    .trace-question {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: 1em;
+      padding: 1.25rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      opacity: 0;
+      transition: opacity 0.6s;
+      box-shadow: var(--shadow-inset);
+    }
+
+    .trace-question.visible { opacity: 1; }
+
+    .trace-question p {
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+    }
+
+    .trace-opts {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .trace-opt {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      padding: 0.6rem 1.4rem;
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.5em;
+      background: var(--bg-glass);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.3s var(--ease-spring);
+      max-width: 380px;
+      text-align: left;
+    }
+
+    .trace-opt:hover {
+      border-color: var(--accent-blue);
+      background: var(--bg-glass-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .trace-opt.correct {
+      border-color: rgba(63, 185, 80, 0.5);
+      background: rgba(63, 185, 80, 0.08);
+      color: var(--accent-green);
+      box-shadow: 0 0 12px rgba(63, 185, 80, 0.15);
+    }
+    .trace-opt.wrong {
+      border-color: rgba(248, 81, 73, 0.5);
+      color: var(--accent-red);
+      box-shadow: 0 0 12px rgba(248, 81, 73, 0.15);
+    }
+    .trace-opt.disabled { pointer-events: none; opacity: 0.4; }
+
+    .trace-fb {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      min-height: 1.5em;
+      margin-top: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .trace-fb--correct { color: var(--accent-green); }
+    .trace-fb--wrong { color: var(--accent-red); }
+  </style>
+</head>
+<body>
+  <div class="mobile-gate">
+    <svg class="mobile-gate-anim" viewBox="0 0 180 140">
+      <path class="mg-edge" d="M 50,30 Q 70,25 90,45" />
+      <path class="mg-edge" d="M 50,30 Q 75,55 90,75" />
+      <path class="mg-edge" d="M 90,45 Q 90,60 90,75" />
+      <path class="mg-edge" d="M 90,75 Q 70,95 55,110" />
+      <path class="mg-edge" d="M 90,75 Q 110,95 125,110" />
+      <path class="mg-edge" d="M 55,110 Q 105,100 140,75" />
+      <path class="mg-edge" d="M 125,110 Q 135,95 140,75" />
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="3s" repeatCount="indefinite" begin="0s"><mpath href="#mgp1"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3s" repeatCount="indefinite" begin="0s"/></circle>
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="3.5s" repeatCount="indefinite" begin="1.2s"><mpath href="#mgp2"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3.5s" repeatCount="indefinite" begin="1.2s"/></circle>
+      <circle class="mg-particle--orange" r="1.5" opacity="0"><animateMotion dur="2.8s" repeatCount="indefinite" begin="0.5s"><mpath href="#mgp3"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="2.8s" repeatCount="indefinite" begin="0.5s"/></circle>
+      <circle class="mg-particle--purple" r="1.5" opacity="0"><animateMotion dur="3.2s" repeatCount="indefinite" begin="1.8s"><mpath href="#mgp4"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3.2s" repeatCount="indefinite" begin="1.8s"/></circle>
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0.8s"><mpath href="#mgp5"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="2.6s" repeatCount="indefinite" begin="0.8s"/></circle>
+      <defs>
+        <path id="mgp1" d="M 50,30 Q 70,25 90,45" />
+        <path id="mgp2" d="M 50,30 Q 75,55 90,75" />
+        <path id="mgp3" d="M 90,75 Q 70,95 55,110" />
+        <path id="mgp4" d="M 55,110 Q 105,100 140,75" />
+        <path id="mgp5" d="M 125,110 Q 135,95 140,75" />
+      </defs>
+      <circle class="mg-node" cx="50" cy="30" r="12" />
+      <text class="mg-label" x="50" y="33">gw</text>
+      <circle class="mg-node" cx="90" cy="45" r="10" />
+      <text class="mg-label" x="90" y="48">auth</text>
+      <circle class="mg-node" cx="90" cy="75" r="13" />
+      <text class="mg-label" x="90" y="78">api</text>
+      <circle class="mg-node" cx="55" cy="110" r="10" />
+      <text class="mg-label" x="55" y="113">ord</text>
+      <circle class="mg-node" cx="125" cy="110" r="10" />
+      <text class="mg-label" x="125" y="113">inv</text>
+      <circle class="mg-node" cx="140" cy="75" r="11" />
+      <text class="mg-label" x="140" y="78">db</text>
+    </svg>
+    <div class="mobile-gate-text" data-i18n-html="common.desktopOnlyText">Some paths require a wider view.<br>Return on a larger screen.</div>
+  </div>
+
+  <div class="koan-page">
+
+    <h1 class="koan-title" data-i18n="koan20.title">Moments Within</h1>
+
+    <div class="koan-text" data-i18n-html="koan20.zen">
+      A span tells the story of an operation.<br>
+      But within that story, some moments deserve their own name.
+    </div>
+
+    <!-- Scenario -->
+    <div class="scenario-panel" id="scenario">
+      <div class="scenario-header" data-i18n="koan20.scenarioHeader">observation</div>
+      <div class="scenario-body" data-i18n-html="koan20.scenarioBody">
+        A checkout span takes 800ms. Inside it, a <strong>cache miss</strong> happens at +50ms and a <strong>retry</strong> at +400ms.<br>
+        Should you create child spans for these, or is there a lighter way?
+      </div>
+    </div>
+
+    <!-- Approach A: child spans (cluttered) -->
+    <div class="se-scene" id="sceneA">
+      <div class="se-scene-header" data-i18n="koan20.approachAHeader">approach a: child spans</div>
+      <div class="se-scene-body">
+        <div class="se-timeline">
+          <!-- Parent checkout bar -->
+          <div class="se-bar-row">
+            <div class="se-bar-name">checkout</div>
+            <div class="se-bar-track">
+              <div class="se-bar se-bar--checkout" id="barA0" style="left: 0%; width: 100%;"></div>
+            </div>
+            <div class="se-bar-dur">800ms</div>
+          </div>
+
+          <!-- Child: cache_miss span -->
+          <div class="se-bar-row">
+            <div class="se-bar-name" style="padding-left: 14px;">cache_miss</div>
+            <div class="se-bar-track">
+              <div class="se-bar se-bar--cache" id="barA1" style="left: 6.25%; width: 6.25%;"></div>
+            </div>
+            <div class="se-bar-dur" style="color: var(--accent-orange);">50ms</div>
+          </div>
+
+          <!-- Child: work span (between events) -->
+          <div class="se-bar-row">
+            <div class="se-bar-name" style="padding-left: 14px;">process</div>
+            <div class="se-bar-track">
+              <div class="se-bar se-bar--work" id="barA2" style="left: 12.5%; width: 37.5%;"></div>
+            </div>
+            <div class="se-bar-dur">300ms</div>
+          </div>
+
+          <!-- Child: retry span -->
+          <div class="se-bar-row">
+            <div class="se-bar-name" style="padding-left: 14px;">retry</div>
+            <div class="se-bar-track">
+              <div class="se-bar se-bar--retry" id="barA3" style="left: 50%; width: 18.75%;"></div>
+            </div>
+            <div class="se-bar-dur" style="color: var(--accent-red);">150ms</div>
+          </div>
+
+          <!-- Time axis -->
+          <div class="se-axis">
+            <span>0</span>
+            <span>200ms</span>
+            <span>400ms</span>
+            <span>600ms</span>
+            <span>800ms</span>
+          </div>
+        </div>
+
+        <div class="se-verdict" id="verdictA">
+          <div class="se-verdict-badge se-verdict-badge--cluttered" data-i18n="koan20.verdictCluttered">4 spans</div>
+          <div class="se-verdict-text" data-i18n="koan20.verdictAText">Three child spans added to describe two brief moments. The trace becomes noisy.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Approach B: events on parent span (clean) -->
+    <div class="se-scene" id="sceneB">
+      <div class="se-scene-header" data-i18n="koan20.approachBHeader">approach b: events on the span</div>
+      <div class="se-scene-body">
+        <div class="se-timeline">
+          <!-- Parent checkout bar with diamond markers -->
+          <div class="se-bar-row">
+            <div class="se-bar-name">checkout</div>
+            <div class="se-bar-track">
+              <div class="se-bar se-bar--checkout" id="barB0" style="left: 0%; width: 100%;"></div>
+              <!-- cache_miss event at 50ms => 6.25% -->
+              <div class="se-event-marker se-event-marker--cache" id="evtCache" style="left: 6.25%;"></div>
+              <!-- retry event at 400ms => 50% -->
+              <div class="se-event-marker se-event-marker--retry" id="evtRetry" style="left: 50%;"></div>
+            </div>
+            <div class="se-bar-dur">800ms</div>
+          </div>
+
+          <!-- Event labels below -->
+          <div class="se-event-labels" id="evtLabels">
+            <div class="se-event-label se-event-label--cache" id="lblCache" style="left: 6.25%;" data-i18n="koan20.evtCacheLabel">cache_miss +50ms</div>
+            <div class="se-event-label se-event-label--retry" id="lblRetry" style="left: 50%;" data-i18n="koan20.evtRetryLabel">retry +400ms</div>
+          </div>
+
+          <!-- Time axis -->
+          <div class="se-axis">
+            <span>0</span>
+            <span>200ms</span>
+            <span>400ms</span>
+            <span>600ms</span>
+            <span>800ms</span>
+          </div>
+        </div>
+
+        <div class="se-verdict" id="verdictB">
+          <div class="se-verdict-badge se-verdict-badge--clean" data-i18n="koan20.verdictClean">1 span</div>
+          <div class="se-verdict-text" data-i18n="koan20.verdictBText">Two lightweight annotations mark when each moment occurred. The trace stays clean.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q1: Which approach keeps the trace clean? -->
+    <div class="trace-question" id="q1">
+      <p data-i18n="koan20.q1">The cache missed and a retry happened. Which approach keeps the trace clean?</p>
+      <div class="trace-opts">
+        <button class="trace-opt" data-answer="wrong" data-fb="wrong-child" data-i18n="koan20.q1OptA">Create child spans for each</button>
+        <button class="trace-opt" data-answer="correct" data-fb="correct" data-i18n="koan20.q1OptB">Add events to the parent span</button>
+        <button class="trace-opt" data-answer="wrong" data-fb="wrong-log" data-i18n="koan20.q1OptC">Log them separately</button>
+      </div>
+      <div class="trace-fb" id="fb1"></div>
+    </div>
+
+    <!-- Q2: What are these called? -->
+    <div class="trace-question" id="q2">
+      <p data-i18n="koan20.q2">These timestamped annotations on a span are called...</p>
+      <div class="trace-opts">
+        <button class="trace-opt" data-answer="wrong" data-fb="wrong-attr" data-i18n="koan20.q2OptA">Attributes</button>
+        <button class="trace-opt" data-answer="correct" data-fb="correct" data-i18n="koan20.q2OptB">Span events</button>
+        <button class="trace-opt" data-answer="wrong" data-fb="wrong-child2" data-i18n="koan20.q2OptC">Child spans</button>
+      </div>
+      <div class="trace-fb" id="fb2"></div>
+    </div>
+
+    <div class="se-insight" id="insight">
+      <p data-i18n="koan20.insightLine1">Not every moment needs its own span.</p>
+      <p data-i18n="koan20.insightLine2">A span event marks what happened and when &mdash; a lightweight annotation that keeps your traces clean.</p>
+      <a href="21-trace-context.html" data-i18n="common.continue">Continue &rarr;</a>
+    </div>
+  </div>
+
+  <div class="koan-progress">
+    <div class="koan-progress-fill" style="width: 71%"></div>
+  </div>
+
+  <script>
+    (function () {
+      function run() {
+        var sceneA = document.getElementById('sceneA');
+        var sceneB = document.getElementById('sceneB');
+        var q1 = document.getElementById('q1');
+        var q2 = document.getElementById('q2');
+
+        // Phase 1: Reveal approach A with animated bars
+        setTimeout(function () {
+          sceneA.classList.add('visible');
+          var barsA = [
+            document.getElementById('barA0'),
+            document.getElementById('barA1'),
+            document.getElementById('barA2'),
+            document.getElementById('barA3')
+          ];
+          barsA.forEach(function (bar, i) {
+            setTimeout(function () {
+              bar.classList.add('visible');
+            }, 300 + i * 350);
+          });
+
+          // Show verdict A after bars
+          setTimeout(function () {
+            document.getElementById('verdictA').classList.add('visible');
+          }, 300 + 4 * 350 + 400);
+        }, 600);
+
+        // Phase 2: Reveal approach B after A is visible
+        setTimeout(function () {
+          sceneB.classList.add('visible');
+
+          // Show the main bar
+          var barB0 = document.getElementById('barB0');
+          setTimeout(function () {
+            barB0.classList.add('visible');
+          }, 300);
+
+          // Show event markers with a pop
+          setTimeout(function () {
+            document.getElementById('evtCache').classList.add('visible');
+            document.getElementById('lblCache').classList.add('visible');
+          }, 800);
+
+          setTimeout(function () {
+            document.getElementById('evtRetry').classList.add('visible');
+            document.getElementById('lblRetry').classList.add('visible');
+          }, 1200);
+
+          // Show verdict B
+          setTimeout(function () {
+            document.getElementById('verdictB').classList.add('visible');
+          }, 1800);
+
+          // Show Q1 after both approaches visible
+          setTimeout(function () {
+            q1.classList.add('visible');
+          }, 2400);
+        }, 3200);
+
+        // Q1 logic
+        var fb1 = document.getElementById('fb1');
+        var q1Opts = q1.querySelectorAll('.trace-opt');
+
+        q1Opts.forEach(function (opt) {
+          opt.addEventListener('click', function () {
+            if (this.dataset.answer === 'correct') {
+              this.classList.add('correct');
+              q1Opts.forEach(function (o) { o.classList.add('disabled'); });
+              fb1.textContent = i18n.t('koan20.q1Correct');
+              fb1.className = 'trace-fb trace-fb--correct';
+
+              // Reveal Q2
+              setTimeout(function () {
+                q2.classList.add('visible');
+              }, 800);
+            } else {
+              this.classList.add('wrong');
+              var fbType = this.dataset.fb;
+              if (fbType === 'wrong-child') {
+                fb1.textContent = i18n.t('koan20.q1WrongChild');
+              } else {
+                fb1.textContent = i18n.t('koan20.q1WrongLog');
+              }
+              fb1.className = 'trace-fb trace-fb--wrong';
+              var self = this;
+              setTimeout(function () { self.classList.remove('wrong'); }, 600);
+            }
+          });
+        });
+
+        // Q2 logic
+        var fb2 = document.getElementById('fb2');
+        var q2Opts = q2.querySelectorAll('.trace-opt');
+
+        q2Opts.forEach(function (opt) {
+          opt.addEventListener('click', function () {
+            if (this.dataset.answer === 'correct') {
+              this.classList.add('correct');
+              q2Opts.forEach(function (o) { o.classList.add('disabled'); });
+              fb2.textContent = i18n.t('koan20.q2Correct');
+              fb2.className = 'trace-fb trace-fb--correct';
+
+              // Reveal insight
+              setTimeout(function () {
+                document.getElementById('insight').classList.add('visible');
+              }, 800);
+            } else {
+              this.classList.add('wrong');
+              var fbType = this.dataset.fb;
+              if (fbType === 'wrong-attr') {
+                fb2.textContent = i18n.t('koan20.q2WrongAttr');
+              } else {
+                fb2.textContent = i18n.t('koan20.q2WrongChild');
+              }
+              fb2.className = 'trace-fb trace-fb--wrong';
+              var self = this;
+              setTimeout(function () { self.classList.remove('wrong'); }, 600);
+            }
+          });
+        });
+      }
+
+      if (window.i18n && window.i18n.t('common.desktopOnly') !== 'common.desktopOnly') {
+        run();
+      } else {
+        window.addEventListener('i18n:ready', run, { once: true });
+      }
+    })();
+  </script>
+  <script src="../js/scroll.js"></script>
+  <script src="../js/music.js"></script>
+  <script src="../js/progress.js"></script>
+</body>
+</html>

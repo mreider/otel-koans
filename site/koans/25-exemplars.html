@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="koan25.pageTitle">Koan 25: One Among Many - OpenTelemetry Koans</title>
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../img/apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <meta name="theme-color" content="#0a0e14">
+  <link rel="stylesheet" href="../css/shared.css">
+  <script src="../js/i18n.js"></script>
+  <style>
+    /* ── Histogram panel ── */
+    .ex-scene {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: 1em;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+      box-shadow: var(--shadow-inset);
+    }
+
+    .ex-scene.visible { opacity: 1; }
+
+    .ex-scene-header {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ex-badge {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 0.5em;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .ex-badge--metric {
+      background: rgba(210, 153, 34, 0.1);
+      color: var(--accent-orange);
+      border: 1px solid rgba(210, 153, 34, 0.25);
+    }
+
+    .ex-badge--trace {
+      background: rgba(63, 185, 80, 0.1);
+      color: var(--accent-green);
+      border: 1px solid rgba(63, 185, 80, 0.25);
+    }
+
+    .ex-scene-body {
+      padding: 1.5rem 1.5rem 1.25rem;
+    }
+
+    /* ── Histogram chart ── */
+    .ex-chart-title {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent-orange);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.75rem;
+    }
+
+    .ex-histogram {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 120px;
+      padding-bottom: 2rem;
+      position: relative;
+    }
+
+    .ex-bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .ex-bar {
+      width: 100%;
+      border-radius: 3px 3px 0 0;
+      opacity: 0;
+      transform: scaleY(0);
+      transform-origin: bottom;
+      transition: all 0.5s var(--ease-spring);
+    }
+
+    .ex-bar.visible {
+      opacity: 1;
+      transform: scaleY(1);
+    }
+
+    .ex-bar--normal {
+      background: rgba(210, 153, 34, 0.35);
+    }
+
+    .ex-bar--spike {
+      background: rgba(248, 81, 73, 0.5);
+      box-shadow: 0 0 12px rgba(248, 81, 73, 0.2);
+    }
+
+    .ex-bar-label {
+      position: absolute;
+      bottom: -1.6rem;
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* ── p99 annotation line ── */
+    .ex-p99-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      border-top: 1px dashed rgba(248, 81, 73, 0.5);
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+    }
+
+    .ex-p99-line.visible { opacity: 1; }
+
+    .ex-p99-label {
+      position: absolute;
+      right: 0;
+      top: -1.2rem;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--accent-red);
+      white-space: nowrap;
+    }
+
+    /* ── Metric finding ── */
+    .ex-metric-finding {
+      margin-top: 1.25rem;
+      padding: 0.5rem 0.85rem;
+      background: rgba(248, 81, 73, 0.04);
+      border: 1px solid rgba(248, 81, 73, 0.2);
+      border-radius: 0.5em;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.5s var(--ease-smooth);
+    }
+
+    .ex-metric-finding.visible { opacity: 1; }
+
+    .ex-metric-finding .key { color: var(--accent-red); }
+    .ex-metric-finding .val { color: var(--text-primary); }
+
+    /* ── Diamond exemplar marker ── */
+    .ex-diamond {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      transform: translate(-50%, -50%) rotate(45deg);
+      border: 2px solid var(--accent-green);
+      background: rgba(63, 185, 80, 0.15);
+      box-shadow: 0 0 10px rgba(63, 185, 80, 0.4);
+      z-index: 3;
+      opacity: 0;
+      transition: opacity 0.5s var(--ease-smooth);
+      cursor: default;
+    }
+
+    .ex-diamond.visible { opacity: 1; }
+
+    @keyframes diamondPulse {
+      0%, 100% { box-shadow: 0 0 8px rgba(63, 185, 80, 0.3); }
+      50% { box-shadow: 0 0 18px rgba(63, 185, 80, 0.5); }
+    }
+
+    .ex-diamond.visible {
+      animation: diamondPulse 2s ease-in-out infinite;
+    }
+
+    /* ── Exemplar reveal panel ── */
+    .ex-exemplar-reveal {
+      background: var(--bg-glass);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+      border-radius: 0.75em;
+      padding: 0.75rem 1rem;
+      margin-top: 1rem;
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+    }
+
+    .ex-exemplar-reveal.visible { opacity: 1; }
+
+    .ex-exemplar-header {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--accent-green);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+    }
+
+    .ex-exemplar-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .ex-exemplar-field {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .ex-exemplar-field .field-key {
+      color: var(--text-muted);
+    }
+
+    .ex-exemplar-field .field-val {
+      color: var(--accent-green);
+    }
+
+    .ex-exemplar-field .field-val--orange {
+      color: var(--accent-orange);
+    }
+
+    /* ── Bridge text ── */
+    .ex-bridge {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      text-align: center;
+      margin: 1.25rem 0;
+      line-height: 1.7;
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+    }
+
+    .ex-bridge.visible { opacity: 1; }
+
+    .ex-bridge strong { color: var(--text-primary); }
+
+    /* ── Linked trace waterfall ── */
+    .ex-waterfall-body {
+      padding: 1.25rem 1.5rem;
+    }
+
+    .ex-span-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .ex-span-row:last-child { margin-bottom: 0; }
+
+    .ex-span-name {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-primary);
+      width: 110px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .ex-span-track {
+      flex: 1;
+      height: 22px;
+      position: relative;
+      background: var(--bg-glass);
+      border-radius: 0.5em;
+    }
+
+    .ex-span-bar {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      border-radius: 0.5em;
+      opacity: 0;
+      transition: opacity 0.5s var(--ease-smooth);
+    }
+
+    .ex-span-bar.visible { opacity: 1; }
+
+    .ex-span-bar--gateway {
+      background: rgba(88, 166, 255, 0.35);
+    }
+
+    .ex-span-bar--api {
+      background: rgba(63, 185, 80, 0.35);
+    }
+
+    .ex-span-bar--db {
+      background: rgba(248, 81, 73, 0.45);
+      box-shadow: 0 0 8px rgba(248, 81, 73, 0.15);
+    }
+
+    .ex-span-dur {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      min-width: 50px;
+      flex-shrink: 0;
+    }
+
+    .ex-span-dur--slow {
+      color: var(--accent-red);
+    }
+
+    /* Time axis */
+    .ex-axis {
+      display: flex;
+      justify-content: space-between;
+      margin-left: calc(110px + 0.75rem);
+      margin-right: 50px;
+      margin-top: 0.25rem;
+      padding-top: 0.35rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .ex-axis span {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    /* Root cause callout */
+    .ex-root-cause {
+      margin-top: 0.75rem;
+      padding: 0.5rem 0.85rem;
+      background: rgba(248, 81, 73, 0.04);
+      border: 1px solid rgba(248, 81, 73, 0.2);
+      border-radius: 0.5em;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.5s var(--ease-smooth);
+    }
+
+    .ex-root-cause.visible { opacity: 1; }
+
+    .ex-root-cause .key { color: var(--accent-red); }
+
+    /* ── Question panels ── */
+    .trace-question {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: 1em;
+      padding: 1.25rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      box-shadow: var(--shadow-inset);
+      transition: opacity 0.6s var(--ease-smooth), max-height 0.6s, padding 0.6s, margin-bottom 0.6s;
+    }
+
+    .trace-question.visible {
+      opacity: 1;
+      max-height: 20rem;
+      padding: 1.25rem;
+    }
+
+    .trace-question p {
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+    }
+
+    .trace-opts {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .trace-opt {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      padding: 0.6rem 1.4rem;
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.5em;
+      background: var(--bg-glass);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.3s var(--ease-spring);
+      max-width: 380px;
+      text-align: left;
+    }
+
+    .trace-opt:hover {
+      border-color: var(--accent-blue);
+      background: var(--bg-glass-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .trace-opt.correct {
+      border-color: rgba(63, 185, 80, 0.5);
+      background: rgba(63, 185, 80, 0.08);
+      color: var(--accent-green);
+      box-shadow: 0 0 12px rgba(63, 185, 80, 0.15);
+    }
+    .trace-opt.wrong {
+      border-color: rgba(248, 81, 73, 0.5);
+      color: var(--accent-red);
+      box-shadow: 0 0 12px rgba(248, 81, 73, 0.15);
+    }
+    .trace-opt.disabled { pointer-events: none; opacity: 0.4; }
+
+    .trace-fb {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      min-height: 1.5em;
+      margin-top: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .trace-fb--correct { color: var(--accent-green); }
+    .trace-fb--wrong { color: var(--accent-red); }
+  </style>
+</head>
+<body>
+  <div class="mobile-gate">
+    <svg class="mobile-gate-anim" viewBox="0 0 180 140">
+      <path class="mg-edge" d="M 50,30 Q 70,25 90,45" />
+      <path class="mg-edge" d="M 50,30 Q 75,55 90,75" />
+      <path class="mg-edge" d="M 90,45 Q 90,60 90,75" />
+      <path class="mg-edge" d="M 90,75 Q 70,95 55,110" />
+      <path class="mg-edge" d="M 90,75 Q 110,95 125,110" />
+      <path class="mg-edge" d="M 55,110 Q 105,100 140,75" />
+      <path class="mg-edge" d="M 125,110 Q 135,95 140,75" />
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="3s" repeatCount="indefinite" begin="0s"><mpath href="#mgp1"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3s" repeatCount="indefinite" begin="0s"/></circle>
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="3.5s" repeatCount="indefinite" begin="1.2s"><mpath href="#mgp2"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3.5s" repeatCount="indefinite" begin="1.2s"/></circle>
+      <circle class="mg-particle--orange" r="1.5" opacity="0"><animateMotion dur="2.8s" repeatCount="indefinite" begin="0.5s"><mpath href="#mgp3"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="2.8s" repeatCount="indefinite" begin="0.5s"/></circle>
+      <circle class="mg-particle--purple" r="1.5" opacity="0"><animateMotion dur="3.2s" repeatCount="indefinite" begin="1.8s"><mpath href="#mgp4"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3.2s" repeatCount="indefinite" begin="1.8s"/></circle>
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0.8s"><mpath href="#mgp5"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="2.6s" repeatCount="indefinite" begin="0.8s"/></circle>
+      <defs>
+        <path id="mgp1" d="M 50,30 Q 70,25 90,45" />
+        <path id="mgp2" d="M 50,30 Q 75,55 90,75" />
+        <path id="mgp3" d="M 90,75 Q 70,95 55,110" />
+        <path id="mgp4" d="M 55,110 Q 105,100 140,75" />
+        <path id="mgp5" d="M 125,110 Q 135,95 140,75" />
+      </defs>
+      <circle class="mg-node" cx="50" cy="30" r="12" />
+      <text class="mg-label" x="50" y="33">gw</text>
+      <circle class="mg-node" cx="90" cy="45" r="10" />
+      <text class="mg-label" x="90" y="48">auth</text>
+      <circle class="mg-node" cx="90" cy="75" r="13" />
+      <text class="mg-label" x="90" y="78">api</text>
+      <circle class="mg-node" cx="55" cy="110" r="10" />
+      <text class="mg-label" x="55" y="113">ord</text>
+      <circle class="mg-node" cx="125" cy="110" r="10" />
+      <text class="mg-label" x="125" y="113">inv</text>
+      <circle class="mg-node" cx="140" cy="75" r="11" />
+      <text class="mg-label" x="140" y="78">db</text>
+    </svg>
+    <div class="mobile-gate-text" data-i18n-html="common.desktopOnlyText">Some paths require a wider view.<br>Return on a larger screen.</div>
+  </div>
+
+  <div class="koan-page">
+
+    <h1 class="koan-title" data-i18n="koan25.title">One Among Many</h1>
+
+    <div class="koan-text" data-i18n-html="koan25.zen">
+      A thousand requests become one number.<br>
+      But behind the number, one request holds the answer.
+    </div>
+
+    <!-- ══ Phase 1: Histogram with spike ══ -->
+    <div class="ex-scene" id="histogramScene">
+      <div class="ex-scene-header">
+        <span data-i18n="koan25.histogramHeader">latency histogram</span>
+        <span class="ex-badge ex-badge--metric" data-i18n="koan25.badgeMetric">metric</span>
+      </div>
+      <div class="ex-scene-body">
+        <div class="ex-chart-title" data-i18n="koan25.chartTitle">http.server.duration (p99)</div>
+
+        <div class="ex-histogram" id="histogram">
+          <!-- Histogram bars: buckets from 0-400ms to 3200ms+ -->
+          <div class="ex-bar-col">
+            <div class="ex-bar ex-bar--normal" id="hbar0" style="height: 30%;"></div>
+            <span class="ex-bar-label">100</span>
+          </div>
+          <div class="ex-bar-col">
+            <div class="ex-bar ex-bar--normal" id="hbar1" style="height: 55%;"></div>
+            <span class="ex-bar-label">200</span>
+          </div>
+          <div class="ex-bar-col">
+            <div class="ex-bar ex-bar--normal" id="hbar2" style="height: 80%;"></div>
+            <span class="ex-bar-label">400</span>
+          </div>
+          <div class="ex-bar-col">
+            <div class="ex-bar ex-bar--normal" id="hbar3" style="height: 65%;"></div>
+            <span class="ex-bar-label">800</span>
+          </div>
+          <div class="ex-bar-col">
+            <div class="ex-bar ex-bar--normal" id="hbar4" style="height: 40%;"></div>
+            <span class="ex-bar-label">1600</span>
+          </div>
+          <div class="ex-bar-col">
+            <div class="ex-bar ex-bar--spike" id="hbar5" style="height: 95%;"></div>
+            <span class="ex-bar-label" style="color: var(--accent-red);">3200</span>
+          </div>
+          <div class="ex-bar-col">
+            <div class="ex-bar ex-bar--normal" id="hbar6" style="height: 15%;"></div>
+            <span class="ex-bar-label">6400</span>
+          </div>
+
+          <!-- p99 dashed line -->
+          <div class="ex-p99-line" id="p99line" style="top: 5%;">
+            <span class="ex-p99-label" data-i18n="koan25.p99Label">p99 = 3200ms</span>
+          </div>
+
+          <!-- Diamond exemplar marker on the spike bar -->
+          <div class="ex-diamond" id="exemplarDiamond" style="left: 78.5%; top: 5%;"></div>
+        </div>
+
+        <!-- Metric finding -->
+        <div class="ex-metric-finding" id="metricFinding">
+          <span class="key" data-i18n="koan25.findingKey">p99 latency:</span>
+          <span class="val">3200ms</span>
+          &mdash;
+          <span data-i18n="koan25.findingQuestion">but which request caused it?</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ Exemplar reveal ══ -->
+    <div class="ex-exemplar-reveal" id="exemplarReveal">
+      <div class="ex-exemplar-header" data-i18n="koan25.exemplarHeader">exemplar attached to bucket 3200ms</div>
+      <div class="ex-exemplar-fields">
+        <div class="ex-exemplar-field">
+          <span class="field-key">trace_id: </span>
+          <span class="field-val">abc123def456...</span>
+        </div>
+        <div class="ex-exemplar-field">
+          <span class="field-key">span_id: </span>
+          <span class="field-val">7a8b9c0d...</span>
+        </div>
+        <div class="ex-exemplar-field">
+          <span class="field-key">value: </span>
+          <span class="field-val--orange">3247ms</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bridge text -->
+    <div class="ex-bridge" id="bridge1" data-i18n-html="koan25.bridge1">
+      The exemplar points from the aggregated metric to <strong>one specific request</strong>. Follow the trace_id to see what happened.
+    </div>
+
+    <!-- ══ Phase 2: Linked trace waterfall ══ -->
+    <div class="ex-scene" id="traceScene">
+      <div class="ex-scene-header">
+        <span data-i18n="koan25.traceHeader">linked trace: abc123def456...</span>
+        <span class="ex-badge ex-badge--trace" data-i18n="koan25.badgeTrace">trace</span>
+      </div>
+      <div class="ex-waterfall-body">
+        <!-- 3-span trace showing the slow DB call -->
+        <div class="ex-span-row">
+          <div class="ex-span-name">gateway</div>
+          <div class="ex-span-track">
+            <div class="ex-span-bar ex-span-bar--gateway" id="tbar0" style="left: 0%; width: 100%;"></div>
+          </div>
+          <div class="ex-span-dur">3247ms</div>
+        </div>
+
+        <div class="ex-span-row">
+          <div class="ex-span-name" style="padding-left: 14px;">api</div>
+          <div class="ex-span-track">
+            <div class="ex-span-bar ex-span-bar--api" id="tbar1" style="left: 3%; width: 95%;"></div>
+          </div>
+          <div class="ex-span-dur">3180ms</div>
+        </div>
+
+        <div class="ex-span-row">
+          <div class="ex-span-name" style="padding-left: 28px;">db.query</div>
+          <div class="ex-span-track">
+            <div class="ex-span-bar ex-span-bar--db" id="tbar2" style="left: 5%; width: 90%;"></div>
+          </div>
+          <div class="ex-span-dur ex-span-dur--slow">3050ms</div>
+        </div>
+
+        <!-- Time axis -->
+        <div class="ex-axis">
+          <span>0</span>
+          <span>800ms</span>
+          <span>1600ms</span>
+          <span>2400ms</span>
+          <span>3200ms</span>
+        </div>
+
+        <!-- Root cause callout -->
+        <div class="ex-root-cause" id="rootCause">
+          <span class="key" data-i18n="koan25.rootCause">Root cause:</span>
+          <span data-i18n="koan25.rootCauseDetail">db.query took 3050ms &mdash; a slow full-table scan</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ Question 1 ══ -->
+    <div class="trace-question" id="q1">
+      <p data-i18n="koan25.q1">The p99 latency spiked. The metric tells you the number. What does an exemplar add?</p>
+      <div class="trace-opts">
+        <button class="trace-opt" data-answer="correct" data-fb="correct" data-i18n="koan25.q1OptA">A link to the exact trace that produced that data point</button>
+        <button class="trace-opt" data-answer="wrong" data-fb="more-metrics" data-i18n="koan25.q1OptB">More metric data points</button>
+        <button class="trace-opt" data-answer="wrong" data-fb="log-all" data-i18n="koan25.q1OptC">A log of all slow requests</button>
+      </div>
+      <div class="trace-fb" id="fb1"></div>
+    </div>
+
+    <!-- ══ Question 2 ══ -->
+    <div class="trace-question" id="q2">
+      <p data-i18n="koan25.q2">Exemplars connect which two signals?</p>
+      <div class="trace-opts">
+        <button class="trace-opt" data-answer="correct" data-fb="correct" data-i18n="koan25.q2OptA">Metrics and traces</button>
+        <button class="trace-opt" data-answer="wrong" data-fb="logs-traces" data-i18n="koan25.q2OptB">Logs and traces</button>
+        <button class="trace-opt" data-answer="wrong" data-fb="metrics-logs" data-i18n="koan25.q2OptC">Metrics and logs</button>
+      </div>
+      <div class="trace-fb" id="fb2"></div>
+    </div>
+
+    <!-- ══ Insight ══ -->
+    <div class="ex-insight" id="insight">
+      <p data-i18n="koan25.insightLine1">Metrics aggregate thousands of requests into summary numbers. Exemplars preserve the link back.</p>
+      <p data-i18n="koan25.insightLine2">From one data point in the histogram to the exact trace that produced it. Metric spike &mdash; one click &mdash; root cause.</p>
+      <a href="26-resource-detectors.html" data-i18n="common.continue">Continue &rarr;</a>
+    </div>
+  </div>
+
+  <div class="koan-progress">
+    <div class="koan-progress-fill" style="width: 89%"></div>
+  </div>
+
+  <script>
+    (function () {
+      function run() {
+        var histogramScene = document.getElementById('histogramScene');
+        var exemplarReveal = document.getElementById('exemplarReveal');
+        var bridge1 = document.getElementById('bridge1');
+        var traceScene = document.getElementById('traceScene');
+        var q1 = document.getElementById('q1');
+        var q2 = document.getElementById('q2');
+
+        /* ── Phase 1: Histogram with spike ── */
+        setTimeout(function () {
+          histogramScene.classList.add('visible');
+
+          // Animate histogram bars rising
+          var bars = ['hbar0', 'hbar1', 'hbar2', 'hbar3', 'hbar4', 'hbar5', 'hbar6'];
+          bars.forEach(function (id, i) {
+            setTimeout(function () {
+              document.getElementById(id).classList.add('visible');
+            }, 200 + i * 150);
+          });
+
+          // Show p99 line after bars
+          setTimeout(function () {
+            document.getElementById('p99line').classList.add('visible');
+          }, 200 + bars.length * 150 + 400);
+
+          // Show metric finding
+          setTimeout(function () {
+            document.getElementById('metricFinding').classList.add('visible');
+          }, 200 + bars.length * 150 + 900);
+
+          // Show diamond exemplar marker on the spike
+          setTimeout(function () {
+            document.getElementById('exemplarDiamond').classList.add('visible');
+          }, 200 + bars.length * 150 + 1500);
+
+          // Show exemplar reveal panel
+          setTimeout(function () {
+            exemplarReveal.classList.add('visible');
+          }, 200 + bars.length * 150 + 2100);
+
+          // Show bridge text
+          setTimeout(function () {
+            bridge1.classList.add('visible');
+          }, 200 + bars.length * 150 + 2800);
+
+          // Show linked trace waterfall
+          setTimeout(function () {
+            traceScene.classList.add('visible');
+
+            // Animate trace span bars
+            var tbars = ['tbar0', 'tbar1', 'tbar2'];
+            tbars.forEach(function (id, i) {
+              setTimeout(function () {
+                document.getElementById(id).classList.add('visible');
+              }, 300 + i * 350);
+            });
+
+            // Show root cause
+            setTimeout(function () {
+              document.getElementById('rootCause').classList.add('visible');
+            }, 300 + 3 * 350 + 500);
+
+            // Show Q1
+            setTimeout(function () {
+              q1.classList.add('visible');
+            }, 300 + 3 * 350 + 1200);
+          }, 200 + bars.length * 150 + 3500);
+        }, 600);
+
+        /* ── Quiz engine ── */
+        function setupQuiz(qId, fbId, onCorrect) {
+          var q = document.getElementById(qId);
+          var fb = document.getElementById(fbId);
+          var opts = q.querySelectorAll('.trace-opt');
+
+          opts.forEach(function (opt) {
+            opt.addEventListener('click', function () {
+              var fbType = this.dataset.fb;
+
+              if (this.dataset.answer === 'correct') {
+                this.classList.add('correct');
+                opts.forEach(function (o) { o.classList.add('disabled'); });
+                fb.textContent = i18n.t('koan25.' + qId + 'Correct');
+                fb.className = 'trace-fb trace-fb--correct';
+                if (onCorrect) {
+                  setTimeout(onCorrect, 800);
+                }
+              } else {
+                this.classList.add('wrong');
+                fb.textContent = i18n.t('koan25.' + qId + 'Wrong_' + fbType);
+                fb.className = 'trace-fb trace-fb--wrong';
+                var self = this;
+                setTimeout(function () { self.classList.remove('wrong'); }, 600);
+              }
+            });
+          });
+        }
+
+        /* ── Q1: What does an exemplar add? ── */
+        setupQuiz('q1', 'fb1', function () {
+          q2.classList.add('visible');
+        });
+
+        /* ── Q2: Which two signals? ── */
+        setupQuiz('q2', 'fb2', function () {
+          document.getElementById('insight').classList.add('visible');
+        });
+      }
+
+      if (window.i18n && window.i18n.t('common.desktopOnly') !== 'common.desktopOnly') {
+        run();
+      } else {
+        window.addEventListener('i18n:ready', run, { once: true });
+      }
+    })();
+  </script>
+  <script src="../js/scroll.js"></script>
+  <script src="../js/music.js"></script>
+  <script src="../js/progress.js"></script>
+</body>
+</html>

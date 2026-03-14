@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="koan26.pageTitle">Koan 26: Knowing Where You Are - OpenTelemetry Koans</title>
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../img/apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <meta name="theme-color" content="#0a0e14">
+  <link rel="stylesheet" href="../css/shared.css">
+  <script src="../js/i18n.js"></script>
+  <style>
+    /* ── Resource panel ── */
+    .rd-resource-panel {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 1em;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-inset);
+    }
+
+    .rd-panel-header {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .rd-panel-badge {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent-green);
+    }
+
+    .rd-panel-body {
+      padding: 1.25rem 1.5rem;
+    }
+
+    /* ── Attribute rows ── */
+    .rd-attr-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.45rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.5s var(--ease-smooth), transform 0.5s var(--ease-spring);
+    }
+
+    .rd-attr-row:last-child {
+      border-bottom: none;
+    }
+
+    .rd-attr-row.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .rd-attr-key {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      min-width: 160px;
+    }
+
+    .rd-attr-eq {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      opacity: 0.4;
+    }
+
+    .rd-attr-val {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--accent-green);
+    }
+
+    .rd-attr-detector {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 2em;
+      background: rgba(88, 166, 255, 0.08);
+      border: 1px solid rgba(88, 166, 255, 0.2);
+      color: var(--accent-blue);
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.4s var(--ease-smooth);
+    }
+
+    .rd-attr-detector.visible {
+      opacity: 1;
+    }
+
+    /* ── Narrative text ── */
+    .rd-narrative {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      text-align: center;
+      margin: 1rem 0;
+      line-height: 1.7;
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+    }
+
+    .rd-narrative.visible {
+      opacity: 1;
+    }
+
+    .rd-narrative strong {
+      color: var(--text-primary);
+    }
+
+    /* ── Enable button ── */
+    .rd-controls {
+      text-align: center;
+      margin-bottom: 1rem;
+      opacity: 0;
+      transition: opacity 0.6s;
+    }
+
+    .rd-controls.visible {
+      opacity: 1;
+    }
+
+    /* ── Matching exercise ── */
+    .rd-match-area {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 1em;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      box-shadow: var(--shadow-inset);
+      transition: opacity 0.6s var(--ease-smooth), max-height 0.8s ease;
+    }
+
+    .rd-match-area.visible {
+      opacity: 1;
+      max-height: 800px;
+    }
+
+    .rd-match-title {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      text-align: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .rd-match-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 0.6rem 1.25rem;
+      align-items: center;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .rd-match-seg {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5em;
+      background: var(--bg-glass);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s var(--ease-spring);
+      user-select: none;
+    }
+
+    .rd-match-seg:hover {
+      border-color: var(--accent-blue);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .rd-match-seg.selected {
+      border-color: var(--accent-blue);
+      background: rgba(88, 166, 255, 0.08);
+      color: var(--accent-blue);
+      box-shadow: 0 0 12px rgba(88, 166, 255, 0.15);
+    }
+
+    .rd-match-seg.matched {
+      border-color: rgba(63, 185, 80, 0.4);
+      background: rgba(63, 185, 80, 0.08);
+      color: var(--accent-green);
+      box-shadow: 0 0 12px rgba(63, 185, 80, 0.15);
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .rd-match-seg.wrong-flash {
+      border-color: rgba(248, 81, 73, 0.5);
+      color: var(--accent-red);
+      box-shadow: 0 0 12px rgba(248, 81, 73, 0.15);
+    }
+
+    .rd-match-connector {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .rd-match-label {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5em;
+      background: var(--bg-glass);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s var(--ease-spring);
+      user-select: none;
+    }
+
+    .rd-match-label:hover {
+      border-color: var(--accent-blue);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .rd-match-label.selected {
+      border-color: var(--accent-blue);
+      background: rgba(88, 166, 255, 0.08);
+      color: var(--accent-blue);
+      box-shadow: 0 0 12px rgba(88, 166, 255, 0.15);
+    }
+
+    .rd-match-label.matched {
+      border-color: rgba(63, 185, 80, 0.4);
+      background: rgba(63, 185, 80, 0.08);
+      color: var(--accent-green);
+      box-shadow: 0 0 12px rgba(63, 185, 80, 0.15);
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .rd-match-label.wrong-flash {
+      border-color: rgba(248, 81, 73, 0.5);
+      color: var(--accent-red);
+      box-shadow: 0 0 12px rgba(248, 81, 73, 0.15);
+    }
+
+    .rd-match-status {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      text-align: center;
+      margin-top: 0.75rem;
+      min-height: 1.5em;
+    }
+
+    .rd-match-status--correct { color: var(--accent-green); }
+    .rd-match-status--wrong { color: var(--accent-red); }
+
+    /* ── Question panels ── */
+    .trace-question {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 1em;
+      padding: 1.25rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      box-shadow: var(--shadow-inset);
+      transition: opacity 0.6s var(--ease-smooth), max-height 0.6s, padding 0.6s;
+    }
+
+    .trace-question.visible {
+      opacity: 1;
+      max-height: 20rem;
+      padding: 1.25rem;
+    }
+
+    .trace-question p {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+    }
+
+    .trace-opts {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .trace-opt {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      padding: 0.6rem 1.35rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5em;
+      background: var(--bg-glass);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.3s var(--ease-spring);
+      max-width: 380px;
+      text-align: left;
+    }
+
+    .trace-opt:hover {
+      border-color: var(--accent-blue);
+      background: var(--bg-glass-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .trace-opt.correct {
+      border-color: rgba(63, 185, 80, 0.4);
+      background: rgba(63, 185, 80, 0.08);
+      color: var(--accent-green);
+      box-shadow: 0 0 16px rgba(63, 185, 80, 0.15);
+    }
+
+    .trace-opt.wrong {
+      border-color: rgba(248, 81, 73, 0.4);
+      color: var(--accent-red);
+      box-shadow: 0 0 16px rgba(248, 81, 73, 0.15);
+    }
+
+    .trace-opt.disabled { pointer-events: none; opacity: 0.4; }
+
+    .trace-fb {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      min-height: 1.5em;
+      margin-top: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .trace-fb--correct { color: var(--accent-green); }
+    .trace-fb--wrong { color: var(--accent-red); }
+  </style>
+</head>
+<body>
+  <div class="mobile-gate">
+    <svg class="mobile-gate-anim" viewBox="0 0 180 140">
+      <path class="mg-edge" d="M 50,30 Q 70,25 90,45" />
+      <path class="mg-edge" d="M 50,30 Q 75,55 90,75" />
+      <path class="mg-edge" d="M 90,45 Q 90,60 90,75" />
+      <path class="mg-edge" d="M 90,75 Q 70,95 55,110" />
+      <path class="mg-edge" d="M 90,75 Q 110,95 125,110" />
+      <path class="mg-edge" d="M 55,110 Q 105,100 140,75" />
+      <path class="mg-edge" d="M 125,110 Q 135,95 140,75" />
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="3s" repeatCount="indefinite" begin="0s"><mpath href="#mgp1"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3s" repeatCount="indefinite" begin="0s"/></circle>
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="3.5s" repeatCount="indefinite" begin="1.2s"><mpath href="#mgp2"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3.5s" repeatCount="indefinite" begin="1.2s"/></circle>
+      <circle class="mg-particle--orange" r="1.5" opacity="0"><animateMotion dur="2.8s" repeatCount="indefinite" begin="0.5s"><mpath href="#mgp3"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="2.8s" repeatCount="indefinite" begin="0.5s"/></circle>
+      <circle class="mg-particle--purple" r="1.5" opacity="0"><animateMotion dur="3.2s" repeatCount="indefinite" begin="1.8s"><mpath href="#mgp4"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3.2s" repeatCount="indefinite" begin="1.8s"/></circle>
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0.8s"><mpath href="#mgp5"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="2.6s" repeatCount="indefinite" begin="0.8s"/></circle>
+      <defs>
+        <path id="mgp1" d="M 50,30 Q 70,25 90,45" />
+        <path id="mgp2" d="M 50,30 Q 75,55 90,75" />
+        <path id="mgp3" d="M 90,75 Q 70,95 55,110" />
+        <path id="mgp4" d="M 55,110 Q 105,100 140,75" />
+        <path id="mgp5" d="M 125,110 Q 135,95 140,75" />
+      </defs>
+      <circle class="mg-node" cx="50" cy="30" r="12" />
+      <text class="mg-label" x="50" y="33">gw</text>
+      <circle class="mg-node" cx="90" cy="45" r="10" />
+      <text class="mg-label" x="90" y="48">auth</text>
+      <circle class="mg-node" cx="90" cy="75" r="13" />
+      <text class="mg-label" x="90" y="78">api</text>
+      <circle class="mg-node" cx="55" cy="110" r="10" />
+      <text class="mg-label" x="55" y="113">ord</text>
+      <circle class="mg-node" cx="125" cy="110" r="10" />
+      <text class="mg-label" x="125" y="113">inv</text>
+      <circle class="mg-node" cx="140" cy="75" r="11" />
+      <text class="mg-label" x="140" y="78">db</text>
+    </svg>
+    <div class="mobile-gate-text" data-i18n-html="common.desktopOnlyText">Some paths require a wider view.<br>Return on a larger screen.</div>
+  </div>
+
+  <div class="koan-page">
+
+    <h1 class="koan-title" data-i18n="koan26.title">Knowing Where You Are</h1>
+
+    <div class="koan-text" data-i18n-html="koan26.zen">
+      You named the service. But the environment has a name too &mdash; if you know how to ask.
+    </div>
+
+    <!-- ═══ Phase 1: Resource panel with just service.name ═══ -->
+    <div class="rd-resource-panel" id="resourcePanel">
+      <div class="rd-panel-header">
+        <span data-i18n="koan26.resourceHeader">span resource</span>
+        <span class="rd-panel-badge" data-i18n="koan26.resourceBadge">resource</span>
+      </div>
+      <div class="rd-panel-body">
+        <div class="rd-attr-row visible" id="attrServiceName">
+          <span class="rd-attr-key">service.name</span>
+          <span class="rd-attr-eq">=</span>
+          <span class="rd-attr-val">orders</span>
+        </div>
+        <div class="rd-attr-row" id="attrHostName">
+          <span class="rd-attr-key">host.name</span>
+          <span class="rd-attr-eq">=</span>
+          <span class="rd-attr-val">ip-10-0-3-47</span>
+          <span class="rd-attr-detector" data-i18n="koan26.detectorHost">Host detector</span>
+        </div>
+        <div class="rd-attr-row" id="attrHostArch">
+          <span class="rd-attr-key">host.arch</span>
+          <span class="rd-attr-eq">=</span>
+          <span class="rd-attr-val">amd64</span>
+          <span class="rd-attr-detector" data-i18n="koan26.detectorHost">Host detector</span>
+        </div>
+        <div class="rd-attr-row" id="attrOsType">
+          <span class="rd-attr-key">os.type</span>
+          <span class="rd-attr-eq">=</span>
+          <span class="rd-attr-val">linux</span>
+          <span class="rd-attr-detector" data-i18n="koan26.detectorOs">OS detector</span>
+        </div>
+        <div class="rd-attr-row" id="attrCloudProvider">
+          <span class="rd-attr-key">cloud.provider</span>
+          <span class="rd-attr-eq">=</span>
+          <span class="rd-attr-val">aws</span>
+          <span class="rd-attr-detector" data-i18n="koan26.detectorCloud">Cloud detector</span>
+        </div>
+        <div class="rd-attr-row" id="attrCloudRegion">
+          <span class="rd-attr-key">cloud.region</span>
+          <span class="rd-attr-eq">=</span>
+          <span class="rd-attr-val">us-east-1</span>
+          <span class="rd-attr-detector" data-i18n="koan26.detectorCloud">Cloud detector</span>
+        </div>
+        <div class="rd-attr-row" id="attrK8sPod">
+          <span class="rd-attr-key">k8s.pod.name</span>
+          <span class="rd-attr-eq">=</span>
+          <span class="rd-attr-val">orders-7b4f9c-xk2m</span>
+          <span class="rd-attr-detector" data-i18n="koan26.detectorK8s">K8s detector</span>
+        </div>
+        <div class="rd-attr-row" id="attrK8sNamespace">
+          <span class="rd-attr-key">k8s.namespace</span>
+          <span class="rd-attr-eq">=</span>
+          <span class="rd-attr-val">production</span>
+          <span class="rd-attr-detector" data-i18n="koan26.detectorK8s">K8s detector</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Narrative 1: the gap -->
+    <div class="rd-narrative" id="narrative1" data-i18n-html="koan26.narrative1">
+      Most teams stop at <strong>service.name</strong>. But where is this service running? Which host? Which cloud region? Which Kubernetes pod?
+    </div>
+
+    <!-- Enable detectors button -->
+    <div class="rd-controls" id="enableControls">
+      <button class="koan-btn koan-btn--primary" id="enableBtn" data-i18n="koan26.enableBtn">Enable resource detectors</button>
+    </div>
+
+    <!-- Narrative 2: after reveal -->
+    <div class="rd-narrative" id="narrative2" data-i18n-html="koan26.narrative2">
+      Each detector queries the runtime environment at startup. <strong>No hardcoding. No config files.</strong> The attributes appear automatically.
+    </div>
+
+    <!-- ═══ Matching exercise ═══ -->
+    <div class="rd-match-area" id="matchArea">
+      <div class="rd-match-title" data-i18n="koan26.matchTitle">Which detector discovered which attribute?</div>
+
+      <div class="rd-match-grid" id="matchGrid">
+        <!-- Row 1: host.name, host.arch -->
+        <div class="rd-match-seg" data-seg="host" data-i18n="koan26.matchSeg1">host.name, host.arch</div>
+        <div class="rd-match-connector">&rarr;</div>
+        <div class="rd-match-label" data-label="cloud" data-i18n="koan26.matchLabel1">Cloud detector</div>
+
+        <!-- Row 2: os.type -->
+        <div class="rd-match-seg" data-seg="os" data-i18n="koan26.matchSeg2">os.type</div>
+        <div class="rd-match-connector">&rarr;</div>
+        <div class="rd-match-label" data-label="k8s" data-i18n="koan26.matchLabel2">K8s detector</div>
+
+        <!-- Row 3: cloud.provider, cloud.region -->
+        <div class="rd-match-seg" data-seg="cloud" data-i18n="koan26.matchSeg3">cloud.provider, cloud.region</div>
+        <div class="rd-match-connector">&rarr;</div>
+        <div class="rd-match-label" data-label="host" data-i18n="koan26.matchLabel3">Host detector</div>
+
+        <!-- Row 4: k8s.pod.name, k8s.namespace -->
+        <div class="rd-match-seg" data-seg="k8s" data-i18n="koan26.matchSeg4">k8s.pod.name, k8s.namespace</div>
+        <div class="rd-match-connector">&rarr;</div>
+        <div class="rd-match-label" data-label="os" data-i18n="koan26.matchLabel4">OS detector</div>
+      </div>
+
+      <div class="rd-match-status" id="matchStatus"></div>
+    </div>
+
+    <!-- ═══ Question 1 ═══ -->
+    <div class="trace-question" id="q1">
+      <p data-i18n="koan26.q1">Why use resource detectors instead of setting attributes manually?</p>
+      <div class="trace-opts">
+        <button class="trace-opt" data-answer="correct" data-fb-key="koan26.q1FbA" data-i18n="koan26.q1OptA">Detectors discover environment attributes automatically</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan26.q1FbB" data-i18n="koan26.q1OptB">Manual attributes are more accurate</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan26.q1FbC" data-i18n="koan26.q1OptC">Detectors are required by OpenTelemetry</button>
+      </div>
+      <div class="trace-fb" id="fb1"></div>
+    </div>
+
+    <!-- ═══ Question 2 ═══ -->
+    <div class="trace-question" id="q2">
+      <p data-i18n="koan26.q2">service.name is not discovered by a detector. Why?</p>
+      <div class="trace-opts">
+        <button class="trace-opt" data-answer="correct" data-fb-key="koan26.q2FbA" data-i18n="koan26.q2OptA">It's a business decision, not an environment fact</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan26.q2FbB" data-i18n="koan26.q2OptB">Detectors can't read strings</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan26.q2FbC" data-i18n="koan26.q2OptC">It's deprecated</button>
+      </div>
+      <div class="trace-fb" id="fb2"></div>
+    </div>
+
+    <!-- ═══ Insight ═══ -->
+    <div class="rd-insight" id="insight">
+      <p data-i18n="koan26.insightLine1">service.name is yours to choose. Everything else &mdash; host, cloud, Kubernetes &mdash; resource detectors can discover automatically.</p>
+      <p data-i18n="koan26.insightLine2">Name your service. Let the detectors handle the rest.</p>
+      <a href="27-collector-transforms.html" data-i18n="common.continue">Continue &rarr;</a>
+    </div>
+  </div>
+
+  <div class="koan-progress">
+    <div class="koan-progress-fill" style="width: 93%"></div>
+  </div>
+
+  <script>
+    (function () {
+      function run() {
+        var enableControls = document.getElementById('enableControls');
+        var enableBtn = document.getElementById('enableBtn');
+        var narrative1 = document.getElementById('narrative1');
+        var narrative2 = document.getElementById('narrative2');
+        var matchArea = document.getElementById('matchArea');
+
+        /* ── Phase 1: Show narrative and enable button ── */
+        setTimeout(function () {
+          narrative1.classList.add('visible');
+        }, 600);
+
+        setTimeout(function () {
+          enableControls.classList.add('visible');
+        }, 1400);
+
+        /* ── Phase 2: Enable detectors — reveal attributes one by one ── */
+        var detectorsEnabled = false;
+
+        enableBtn.addEventListener('click', function () {
+          if (detectorsEnabled) return;
+          detectorsEnabled = true;
+
+          enableBtn.style.opacity = '0';
+          enableBtn.style.pointerEvents = 'none';
+
+          /* Attribute IDs in reveal order */
+          var attrIds = [
+            'attrHostName',
+            'attrHostArch',
+            'attrOsType',
+            'attrCloudProvider',
+            'attrCloudRegion',
+            'attrK8sPod',
+            'attrK8sNamespace'
+          ];
+
+          /* Reveal each attribute row one by one */
+          attrIds.forEach(function (id, i) {
+            setTimeout(function () {
+              var row = document.getElementById(id);
+              row.classList.add('visible');
+
+              /* Show detector label slightly after the row appears */
+              var detector = row.querySelector('.rd-attr-detector');
+              if (detector) {
+                setTimeout(function () {
+                  detector.classList.add('visible');
+                }, 200);
+              }
+            }, 300 + i * 400);
+          });
+
+          /* Show narrative 2 after all attributes revealed */
+          setTimeout(function () {
+            narrative2.classList.add('visible');
+          }, 300 + attrIds.length * 400 + 400);
+
+          /* Show matching exercise */
+          setTimeout(function () {
+            matchArea.classList.add('visible');
+          }, 300 + attrIds.length * 400 + 1200);
+        });
+
+        /* ── Phase 3: Matching exercise ── */
+        var segments = document.querySelectorAll('.rd-match-seg');
+        var labels = document.querySelectorAll('.rd-match-label');
+        var matchStatus = document.getElementById('matchStatus');
+        var selectedSeg = null;
+        var selectedLabel = null;
+        var matchedCount = 0;
+        var totalPairs = 4;
+
+        /* Correct mappings: segment data-seg → label data-label */
+        var correctMap = {
+          'host': 'host',
+          'os': 'os',
+          'cloud': 'cloud',
+          'k8s': 'k8s'
+        };
+
+        function tryMatch() {
+          if (!selectedSeg || !selectedLabel) return;
+
+          var segKey = selectedSeg.dataset.seg;
+          var labelKey = selectedLabel.dataset.label;
+
+          if (correctMap[segKey] === labelKey) {
+            /* Correct match */
+            selectedSeg.classList.remove('selected');
+            selectedLabel.classList.remove('selected');
+            selectedSeg.classList.add('matched');
+            selectedLabel.classList.add('matched');
+            matchedCount++;
+
+            matchStatus.textContent = i18n.t('koan26.matchCorrect');
+            matchStatus.className = 'rd-match-status rd-match-status--correct';
+
+            selectedSeg = null;
+            selectedLabel = null;
+
+            if (matchedCount === totalPairs) {
+              matchStatus.textContent = i18n.t('koan26.matchComplete');
+              matchStatus.className = 'rd-match-status rd-match-status--correct';
+
+              /* Show Q1 */
+              setTimeout(function () {
+                document.getElementById('q1').classList.add('visible');
+              }, 800);
+            }
+          } else {
+            /* Wrong match */
+            var badSeg = selectedSeg;
+            var badLabel = selectedLabel;
+            badSeg.classList.remove('selected');
+            badLabel.classList.remove('selected');
+            badSeg.classList.add('wrong-flash');
+            badLabel.classList.add('wrong-flash');
+
+            matchStatus.textContent = i18n.t('koan26.matchWrong');
+            matchStatus.className = 'rd-match-status rd-match-status--wrong';
+
+            selectedSeg = null;
+            selectedLabel = null;
+
+            setTimeout(function () {
+              badSeg.classList.remove('wrong-flash');
+              badLabel.classList.remove('wrong-flash');
+            }, 600);
+          }
+        }
+
+        segments.forEach(function (seg) {
+          seg.addEventListener('click', function () {
+            if (this.classList.contains('matched')) return;
+
+            if (selectedSeg === this) {
+              this.classList.remove('selected');
+              selectedSeg = null;
+              return;
+            }
+
+            segments.forEach(function (s) { s.classList.remove('selected'); });
+            this.classList.add('selected');
+            selectedSeg = this;
+
+            tryMatch();
+          });
+        });
+
+        labels.forEach(function (lbl) {
+          lbl.addEventListener('click', function () {
+            if (this.classList.contains('matched')) return;
+
+            if (selectedLabel === this) {
+              this.classList.remove('selected');
+              selectedLabel = null;
+              return;
+            }
+
+            labels.forEach(function (l) { l.classList.remove('selected'); });
+            this.classList.add('selected');
+            selectedLabel = this;
+
+            tryMatch();
+          });
+        });
+
+        /* ── Quiz handler ── */
+        function setupQuestion(qEl, fbEl, onCorrect) {
+          var opts = qEl.querySelectorAll('.trace-opt');
+
+          opts.forEach(function (opt) {
+            opt.addEventListener('click', function () {
+              var fbKey = this.dataset.fbKey;
+              var feedbackText = fbKey ? i18n.t(fbKey) : '';
+
+              if (this.dataset.answer === 'correct') {
+                this.classList.add('correct');
+                opts.forEach(function (o) { o.classList.add('disabled'); });
+                fbEl.textContent = feedbackText;
+                fbEl.className = 'trace-fb trace-fb--correct';
+                if (onCorrect) {
+                  setTimeout(onCorrect, 800);
+                }
+              } else {
+                this.classList.add('wrong');
+                fbEl.textContent = feedbackText;
+                fbEl.className = 'trace-fb trace-fb--wrong';
+                var self = this;
+                setTimeout(function () { self.classList.remove('wrong'); }, 600);
+              }
+            });
+          });
+        }
+
+        /* Q1: Why use resource detectors? */
+        setupQuestion(document.getElementById('q1'), document.getElementById('fb1'), function () {
+          document.getElementById('q2').classList.add('visible');
+        });
+
+        /* Q2: Why isn't service.name auto-detected? */
+        setupQuestion(document.getElementById('q2'), document.getElementById('fb2'), function () {
+          document.getElementById('insight').classList.add('visible');
+        });
+      }
+
+      if (window.i18n && window.i18n.t('common.desktopOnly') !== 'common.desktopOnly') { run(); }
+      else { window.addEventListener('i18n:ready', run, { once: true }); }
+    })();
+  </script>
+  <script src="../js/scroll.js"></script>
+  <script src="../js/music.js"></script>
+  <script src="../js/progress.js"></script>
+</body>
+</html>

@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="koan23.pageTitle">Koan 23: Threads Between - OpenTelemetry Koans</title>
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../img/apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <meta name="theme-color" content="#0a0e14">
+  <link rel="stylesheet" href="../css/shared.css">
+  <script src="../js/i18n.js"></script>
+  <style>
+    /* ── Scenario text ── */
+    .sl-scenario {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      text-align: center;
+      max-width: 620px;
+      margin: 0 auto 2rem;
+      line-height: 1.7;
+    }
+
+    .sl-scenario strong {
+      color: var(--text-primary);
+    }
+
+    /* ── Trace flow visualization ── */
+    .sl-scene {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: 1em;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+      box-shadow: var(--shadow-inset);
+    }
+
+    .sl-scene.visible { opacity: 1; }
+
+    .sl-scene-header {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .sl-scene-body {
+      padding: 1.5rem 1.5rem 1.25rem;
+    }
+
+    /* ── Producer trace rows ── */
+    .sl-producers {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .sl-producer-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      opacity: 0;
+      transform: translateX(-12px);
+      transition: all 0.5s var(--ease-spring);
+    }
+
+    .sl-producer-row.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .sl-trace-label {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      width: 60px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .sl-producer-node {
+      width: 120px;
+      height: 42px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.5em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      transition: all 0.4s var(--ease-spring);
+    }
+
+    .sl-producer-node.active-blue {
+      border-color: rgba(88, 166, 255, 0.4);
+      color: var(--accent-blue);
+      box-shadow: 0 0 12px rgba(88, 166, 255, 0.12);
+    }
+
+    .sl-producer-node.active-orange {
+      border-color: rgba(210, 153, 34, 0.4);
+      color: var(--accent-orange);
+      box-shadow: 0 0 12px rgba(210, 153, 34, 0.12);
+    }
+
+    .sl-producer-node.active-purple {
+      border-color: rgba(188, 140, 255, 0.4);
+      color: var(--accent-purple);
+      box-shadow: 0 0 12px rgba(188, 140, 255, 0.12);
+    }
+
+    .sl-produce-arrow {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--border);
+    }
+
+    .sl-queue-icon {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      padding: 0.3rem 0.65rem;
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.35em;
+      background: var(--bg-tertiary);
+    }
+
+    /* ── Divider ── */
+    .sl-divider {
+      border: none;
+      border-top: 1px dashed var(--border-subtle);
+      margin: 1.25rem 0;
+    }
+
+    /* ── Consumer span ── */
+    .sl-consumer-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .sl-consumer-node {
+      width: 160px;
+      height: 48px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.5em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      opacity: 0;
+      transition: all 0.5s var(--ease-spring);
+    }
+
+    .sl-consumer-node.visible {
+      opacity: 1;
+    }
+
+    .sl-consumer-node.active-green {
+      border-color: rgba(63, 185, 80, 0.4);
+      color: var(--accent-green);
+      box-shadow: 0 0 14px rgba(63, 185, 80, 0.15);
+    }
+
+    .sl-consumer-trace-label {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      opacity: 0;
+      transition: opacity 0.4s var(--ease-smooth);
+    }
+
+    .sl-consumer-trace-label.visible { opacity: 1; }
+
+    /* ── Dotted link lines ── */
+    .sl-links-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      margin-top: 0.5rem;
+    }
+
+    .sl-link-line {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      opacity: 0;
+      transition: opacity 0.5s var(--ease-smooth);
+    }
+
+    .sl-link-line.visible { opacity: 1; }
+
+    .sl-link-dash {
+      width: 60px;
+      border-top: 2px dashed;
+      opacity: 0.5;
+    }
+
+    .sl-link-dash--blue { border-color: var(--accent-blue); }
+    .sl-link-dash--orange { border-color: var(--accent-orange); }
+    .sl-link-dash--purple { border-color: var(--accent-purple); }
+
+    .sl-link-label {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    .sl-link-target--blue { color: var(--accent-blue); }
+    .sl-link-target--orange { color: var(--accent-orange); }
+    .sl-link-target--purple { color: var(--accent-purple); }
+
+    /* ── Contrast panel ── */
+    .sl-contrast {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: 1em;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      opacity: 0;
+      max-height: 0;
+      box-shadow: var(--shadow-inset);
+      transition: opacity 0.6s var(--ease-smooth), max-height 0.8s ease;
+    }
+
+    .sl-contrast.visible {
+      opacity: 1;
+      max-height: 400px;
+    }
+
+    .sl-contrast-body {
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .sl-contrast-col {
+      flex: 1;
+      min-width: 200px;
+      max-width: 260px;
+      text-align: center;
+    }
+
+    .sl-contrast-heading {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.5rem;
+    }
+
+    .sl-contrast-heading--red { color: var(--accent-red); }
+    .sl-contrast-heading--green { color: var(--accent-green); }
+
+    .sl-contrast-text {
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ── Narrative text ── */
+    .sl-narrative {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      text-align: center;
+      margin: 0.75rem 0;
+      line-height: 1.7;
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+    }
+
+    .sl-narrative.visible { opacity: 1; }
+    .sl-narrative strong { color: var(--text-primary); }
+
+    /* ── Question panels ── */
+    .trace-question {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: 1em;
+      padding: 1.25rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      box-shadow: var(--shadow-inset);
+      transition: opacity 0.6s var(--ease-smooth), max-height 0.6s, padding 0.6s, margin-bottom 0.6s;
+    }
+
+    .trace-question.visible {
+      opacity: 1;
+      max-height: 20rem;
+      padding: 1.25rem;
+    }
+
+    .trace-question p {
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+    }
+
+    .trace-opts {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .trace-opt {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      padding: 0.6rem 1.4rem;
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.5em;
+      background: var(--bg-glass);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.3s var(--ease-spring);
+      max-width: 380px;
+      text-align: left;
+    }
+
+    .trace-opt:hover {
+      border-color: var(--accent-blue);
+      background: var(--bg-glass-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .trace-opt.correct {
+      border-color: rgba(63, 185, 80, 0.5);
+      background: rgba(63, 185, 80, 0.08);
+      color: var(--accent-green);
+      box-shadow: 0 0 12px rgba(63, 185, 80, 0.15);
+    }
+    .trace-opt.wrong {
+      border-color: rgba(248, 81, 73, 0.5);
+      color: var(--accent-red);
+      box-shadow: 0 0 12px rgba(248, 81, 73, 0.15);
+    }
+    .trace-opt.disabled { pointer-events: none; opacity: 0.4; }
+
+    .trace-fb {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      min-height: 1.5em;
+      margin-top: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .trace-fb--correct { color: var(--accent-green); }
+    .trace-fb--wrong { color: var(--accent-red); }
+
+  </style>
+</head>
+<body>
+  <div class="mobile-gate">
+    <svg class="mobile-gate-anim" viewBox="0 0 180 140">
+      <path class="mg-edge" d="M 50,30 Q 70,25 90,45" />
+      <path class="mg-edge" d="M 50,30 Q 75,55 90,75" />
+      <path class="mg-edge" d="M 90,45 Q 90,60 90,75" />
+      <path class="mg-edge" d="M 90,75 Q 70,95 55,110" />
+      <path class="mg-edge" d="M 90,75 Q 110,95 125,110" />
+      <path class="mg-edge" d="M 55,110 Q 105,100 140,75" />
+      <path class="mg-edge" d="M 125,110 Q 135,95 140,75" />
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="3s" repeatCount="indefinite" begin="0s"><mpath href="#mgp1"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3s" repeatCount="indefinite" begin="0s"/></circle>
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="3.5s" repeatCount="indefinite" begin="1.2s"><mpath href="#mgp2"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3.5s" repeatCount="indefinite" begin="1.2s"/></circle>
+      <circle class="mg-particle--orange" r="1.5" opacity="0"><animateMotion dur="2.8s" repeatCount="indefinite" begin="0.5s"><mpath href="#mgp3"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="2.8s" repeatCount="indefinite" begin="0.5s"/></circle>
+      <circle class="mg-particle--purple" r="1.5" opacity="0"><animateMotion dur="3.2s" repeatCount="indefinite" begin="1.8s"><mpath href="#mgp4"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3.2s" repeatCount="indefinite" begin="1.8s"/></circle>
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0.8s"><mpath href="#mgp5"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="2.6s" repeatCount="indefinite" begin="0.8s"/></circle>
+      <defs>
+        <path id="mgp1" d="M 50,30 Q 70,25 90,45" />
+        <path id="mgp2" d="M 50,30 Q 75,55 90,75" />
+        <path id="mgp3" d="M 90,75 Q 70,95 55,110" />
+        <path id="mgp4" d="M 55,110 Q 105,100 140,75" />
+        <path id="mgp5" d="M 125,110 Q 135,95 140,75" />
+      </defs>
+      <circle class="mg-node" cx="50" cy="30" r="12" />
+      <text class="mg-label" x="50" y="33">gw</text>
+      <circle class="mg-node" cx="90" cy="45" r="10" />
+      <text class="mg-label" x="90" y="48">auth</text>
+      <circle class="mg-node" cx="90" cy="75" r="13" />
+      <text class="mg-label" x="90" y="78">api</text>
+      <circle class="mg-node" cx="55" cy="110" r="10" />
+      <text class="mg-label" x="55" y="113">ord</text>
+      <circle class="mg-node" cx="125" cy="110" r="10" />
+      <text class="mg-label" x="125" y="113">inv</text>
+      <circle class="mg-node" cx="140" cy="75" r="11" />
+      <text class="mg-label" x="140" y="78">db</text>
+    </svg>
+    <div class="mobile-gate-text" data-i18n-html="common.desktopOnlyText">Some paths require a wider view.<br>Return on a larger screen.</div>
+  </div>
+
+  <div class="koan-page">
+
+    <h1 class="koan-title" data-i18n="koan23.title">Threads Between</h1>
+
+    <div class="koan-text" data-i18n-html="koan23.zen">
+      Some connections are not parent and child.<br>
+      They are peers, linked across separate journeys.
+    </div>
+
+    <!-- Scenario -->
+    <div class="sl-scenario" id="scenario" data-i18n-html="koan23.scenario">
+      An <strong>order-processor</strong> service consumes messages from a queue. Each message was produced by a different user's checkout trace. The processor creates its own span &mdash; but needs to reference back to each original trace.
+    </div>
+
+    <!-- ══ Visual: Producer traces + queue + consumer ══ -->
+    <div class="sl-scene" id="producerScene">
+      <div class="sl-scene-header" data-i18n="koan23.producerHeader">three separate traces produce messages</div>
+      <div class="sl-scene-body">
+        <div class="sl-producers">
+          <!-- Trace A -->
+          <div class="sl-producer-row" id="prodA">
+            <div class="sl-trace-label" style="color: var(--accent-blue);">Trace A</div>
+            <div class="sl-producer-node" id="prodNodeA">checkout-1</div>
+            <div class="sl-produce-arrow">&rarr;</div>
+            <div class="sl-queue-icon" data-i18n="koan23.queue">queue</div>
+          </div>
+          <!-- Trace B -->
+          <div class="sl-producer-row" id="prodB">
+            <div class="sl-trace-label" style="color: var(--accent-orange);">Trace B</div>
+            <div class="sl-producer-node" id="prodNodeB">checkout-2</div>
+            <div class="sl-produce-arrow">&rarr;</div>
+            <div class="sl-queue-icon" data-i18n="koan23.queue">queue</div>
+          </div>
+          <!-- Trace C -->
+          <div class="sl-producer-row" id="prodC">
+            <div class="sl-trace-label" style="color: var(--accent-purple);">Trace C</div>
+            <div class="sl-producer-node" id="prodNodeC">checkout-3</div>
+            <div class="sl-produce-arrow">&rarr;</div>
+            <div class="sl-queue-icon" data-i18n="koan23.queue">queue</div>
+          </div>
+        </div>
+
+        <hr class="sl-divider">
+
+        <!-- Consumer -->
+        <div class="sl-consumer-area">
+          <div class="sl-consumer-trace-label" id="consumerTraceLabel" style="color: var(--accent-green);" data-i18n="koan23.consumerTraceLabel">Trace D (its own trace)</div>
+          <div class="sl-consumer-node" id="consumerNode">order-processor</div>
+
+          <!-- Dotted link lines -->
+          <div class="sl-links-area" id="linksArea">
+            <div class="sl-link-line" id="linkA">
+              <span class="sl-link-target--blue">Trace A</span>
+              <div class="sl-link-dash sl-link-dash--blue"></div>
+              <span class="sl-link-label" data-i18n="koan23.linkLabel">link</span>
+            </div>
+            <div class="sl-link-line" id="linkB">
+              <span class="sl-link-target--orange">Trace B</span>
+              <div class="sl-link-dash sl-link-dash--orange"></div>
+              <span class="sl-link-label" data-i18n="koan23.linkLabel">link</span>
+            </div>
+            <div class="sl-link-line" id="linkC">
+              <span class="sl-link-target--purple">Trace C</span>
+              <div class="sl-link-dash sl-link-dash--purple"></div>
+              <span class="sl-link-label" data-i18n="koan23.linkLabel">link</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Narrative -->
+    <div class="sl-narrative" id="narrative1" data-i18n-html="koan23.narrative1">
+      The order-processor lives in its own trace. But it holds <strong>links</strong> &mdash; dotted threads back to each producer span. Neither trace is broken. Both remain whole.
+    </div>
+
+    <!-- ══ Contrast: child-of vs. span links ══ -->
+    <div class="sl-contrast" id="contrastPanel">
+      <div class="sl-scene-header" data-i18n="koan23.contrastHeader">child-of vs. span link</div>
+      <div class="sl-contrast-body">
+        <div class="sl-contrast-col">
+          <div class="sl-contrast-heading sl-contrast-heading--red" data-i18n="koan23.contrastChildOf">child-of</div>
+          <div class="sl-contrast-text" data-i18n="koan23.contrastChildText">A span can only have one parent. Making the consumer a child of a producer trace would steal it into the wrong trace and break the consumer's lineage.</div>
+        </div>
+        <div class="sl-contrast-col">
+          <div class="sl-contrast-heading sl-contrast-heading--green" data-i18n="koan23.contrastLink">span link</div>
+          <div class="sl-contrast-text" data-i18n="koan23.contrastLinkText">A link says "this span is related to that span" without parent-child ownership. Both traces stay intact. One span can hold many links.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ Question 1 ══ -->
+    <div class="trace-question" id="q1">
+      <p data-i18n="koan23.q1">The order processor handles messages from three different traces. How should it connect to them?</p>
+      <div class="trace-opts">
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan23.q1FbChild" data-i18n="koan23.q1OptA">Create child spans under each producer</button>
+        <button class="trace-opt" data-answer="correct" data-fb-key="koan23.q1FbCorrect" data-i18n="koan23.q1OptB">Use span links to reference each producer span</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan23.q1FbIgnore" data-i18n="koan23.q1OptC">Ignore the connection</button>
+      </div>
+      <div class="trace-fb" id="fb1"></div>
+    </div>
+
+    <!-- ══ Question 2 ══ -->
+    <div class="trace-question" id="q2">
+      <p data-i18n="koan23.q2">How are span links different from parent-child relationships?</p>
+      <div class="trace-opts">
+        <button class="trace-opt" data-answer="correct" data-fb-key="koan23.q2FbCorrect" data-i18n="koan23.q2OptA">Links connect spans across traces without changing ownership</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan23.q2FbSame" data-i18n="koan23.q2OptB">They are the same thing</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan23.q2FbReplace" data-i18n="koan23.q2OptC">Links replace traces entirely</button>
+      </div>
+      <div class="trace-fb" id="fb2"></div>
+    </div>
+
+    <!-- ══ Insight ══ -->
+    <div class="sl-insight" id="insight">
+      <p data-i18n="koan23.insightLine1">Not all connections are hierarchical.</p>
+      <p data-i18n="koan23.insightLine2">Span links let you say "this work was related to that work" without breaking either trace's lineage.</p>
+      <a href="24-log-correlation.html" data-i18n="common.continue">Continue &rarr;</a>
+    </div>
+  </div>
+
+  <div class="koan-progress">
+    <div class="koan-progress-fill" style="width: 82%"></div>
+  </div>
+
+  <script>
+    (function () {
+      function run() {
+        var producerScene = document.getElementById('producerScene');
+        var contrastPanel = document.getElementById('contrastPanel');
+        var q1 = document.getElementById('q1');
+        var q2 = document.getElementById('q2');
+
+        /* ── Phase 1: Reveal producer traces ── */
+        setTimeout(function () {
+          producerScene.classList.add('visible');
+
+          /* Animate producer rows sliding in */
+          var producers = [
+            { row: 'prodA', node: 'prodNodeA', cls: 'active-blue' },
+            { row: 'prodB', node: 'prodNodeB', cls: 'active-orange' },
+            { row: 'prodC', node: 'prodNodeC', cls: 'active-purple' }
+          ];
+
+          producers.forEach(function (p, i) {
+            setTimeout(function () {
+              document.getElementById(p.row).classList.add('visible');
+              document.getElementById(p.node).classList.add(p.cls);
+            }, 400 + i * 500);
+          });
+
+          /* ── Phase 2: Reveal consumer node ── */
+          setTimeout(function () {
+            var consumerNode = document.getElementById('consumerNode');
+            consumerNode.classList.add('visible');
+
+            setTimeout(function () {
+              consumerNode.classList.add('active-green');
+              document.getElementById('consumerTraceLabel').classList.add('visible');
+            }, 400);
+
+            /* Reveal link lines one by one */
+            var links = ['linkA', 'linkB', 'linkC'];
+            links.forEach(function (id, i) {
+              setTimeout(function () {
+                document.getElementById(id).classList.add('visible');
+              }, 900 + i * 400);
+            });
+
+            /* Reveal narrative */
+            setTimeout(function () {
+              document.getElementById('narrative1').classList.add('visible');
+            }, 2200);
+
+            /* Reveal contrast panel */
+            setTimeout(function () {
+              contrastPanel.classList.add('visible');
+            }, 3000);
+
+            /* Reveal Q1 */
+            setTimeout(function () {
+              q1.classList.add('visible');
+            }, 3800);
+          }, 2200);
+        }, 600);
+
+        /* ── Quiz handler ── */
+        function setupQuestion(qEl, fbEl, onCorrect) {
+          var opts = qEl.querySelectorAll('.trace-opt');
+
+          opts.forEach(function (opt) {
+            opt.addEventListener('click', function () {
+              var fbKey = this.dataset.fbKey;
+              var feedbackText = fbKey ? i18n.t(fbKey) : '';
+
+              if (this.dataset.answer === 'correct') {
+                this.classList.add('correct');
+                opts.forEach(function (o) { o.classList.add('disabled'); });
+                fbEl.textContent = feedbackText;
+                fbEl.className = 'trace-fb trace-fb--correct';
+                if (onCorrect) {
+                  setTimeout(onCorrect, 800);
+                }
+              } else {
+                this.classList.add('wrong');
+                fbEl.textContent = feedbackText;
+                fbEl.className = 'trace-fb trace-fb--wrong';
+                var self = this;
+                setTimeout(function () { self.classList.remove('wrong'); }, 600);
+              }
+            });
+          });
+        }
+
+        /* ── Q1: How should the processor connect? ── */
+        setupQuestion(q1, document.getElementById('fb1'), function () {
+          q2.classList.add('visible');
+        });
+
+        /* ── Q2: How are links different? ── */
+        setupQuestion(q2, document.getElementById('fb2'), function () {
+          document.getElementById('insight').classList.add('visible');
+        });
+      }
+
+      if (window.i18n && window.i18n.t('common.desktopOnly') !== 'common.desktopOnly') { run(); }
+      else { window.addEventListener('i18n:ready', run, { once: true }); }
+    })();
+  </script>
+  <script src="../js/scroll.js"></script>
+  <script src="../js/music.js"></script>
+  <script src="../js/progress.js"></script>
+</body>
+</html>

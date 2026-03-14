@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="koan22.pageTitle">Koan 22: What You Carry - OpenTelemetry Koans</title>
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../img/apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <meta name="theme-color" content="#0a0e14">
+  <link rel="stylesheet" href="../css/shared.css">
+  <script src="../js/i18n.js"></script>
+  <style>
+    /* ── Scenario text ── */
+    .bg-scenario {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 2rem;
+      line-height: 1.7;
+    }
+
+    .bg-scenario strong {
+      color: var(--text-primary);
+    }
+
+    /* ── Scene panels ── */
+    .bg-scene {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 1em;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+      box-shadow: var(--shadow-inset);
+    }
+
+    .bg-scene.visible { opacity: 1; }
+
+    .bg-scene-header {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .bg-scene-body {
+      padding: 1.5rem 1.5rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Service chain ── */
+    .svc-chain {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 1rem;
+    }
+
+    .svc-node {
+      width: 110px;
+      height: 52px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 0.5em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      transition: all 0.4s var(--ease-spring);
+      position: relative;
+    }
+
+    .svc-node.active {
+      border-color: rgba(88, 166, 255, 0.4);
+      color: var(--accent-blue);
+      box-shadow: 0 0 12px rgba(88, 166, 255, 0.12);
+    }
+
+    .svc-node.active-green {
+      border-color: rgba(63, 185, 80, 0.4);
+      color: var(--accent-green);
+      box-shadow: 0 0 12px rgba(63, 185, 80, 0.15);
+    }
+
+    .svc-arrow {
+      width: 40px;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--border);
+      transition: color 0.4s var(--ease-smooth);
+    }
+
+    .svc-arrow.lit {
+      color: var(--accent-green);
+    }
+
+    /* ── DB query arrows (without baggage) ── */
+    .bg-db-queries {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .bg-db-call {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent-red);
+      opacity: 0;
+      transform: translateY(6px);
+      transition: all 0.4s var(--ease-smooth);
+    }
+
+    .bg-db-call.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .bg-db-call .db-arrow {
+      color: var(--accent-red);
+      opacity: 0.6;
+    }
+
+    .bg-db-count {
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--accent-red);
+      margin-top: 0.75rem;
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+    }
+
+    .bg-db-count.visible { opacity: 1; }
+
+    .bg-db-count .count-num {
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    /* ── Baggage label flowing through ── */
+    .bg-baggage-flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 0.5rem;
+      opacity: 0;
+      transition: opacity 0.8s var(--ease-smooth);
+    }
+
+    .bg-baggage-flow.visible { opacity: 1; }
+
+    .bg-baggage-tag {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 0.3rem 0.75rem;
+      background: rgba(63, 185, 80, 0.08);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+      border-radius: 2em;
+      color: var(--accent-green);
+      white-space: nowrap;
+      animation: baggagePulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes baggagePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(63, 185, 80, 0.15); }
+      50% { box-shadow: 0 0 16px 2px rgba(63, 185, 80, 0.1); }
+    }
+
+    .bg-baggage-arrow {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--accent-green);
+      opacity: 0.5;
+      padding: 0 0.4rem;
+    }
+
+    /* ── "No extra DB calls" summary ── */
+    .bg-no-db {
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--accent-green);
+      margin-top: 0.75rem;
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+    }
+
+    .bg-no-db.visible { opacity: 1; }
+
+    .bg-no-db .count-num {
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    /* ── Bridge text ── */
+    .bg-bridge {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      text-align: center;
+      margin: 1rem 0;
+      line-height: 1.7;
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+    }
+
+    .bg-bridge.visible { opacity: 1; }
+
+    .bg-bridge strong { color: var(--text-primary); }
+
+    /* ── Phase controls ── */
+    .bg-controls {
+      text-align: center;
+      margin-bottom: 1rem;
+      opacity: 0;
+      transition: opacity 0.6s;
+    }
+
+    .bg-controls.visible { opacity: 1; }
+
+    /* ── Question panels ── */
+    .trace-question {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 1em;
+      padding: 1.25rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      box-shadow: var(--shadow-inset);
+      transition: opacity 0.6s var(--ease-smooth), max-height 0.6s, padding 0.6s;
+    }
+
+    .trace-question.visible {
+      opacity: 1;
+      max-height: 20rem;
+      padding: 1.25rem;
+    }
+
+    .trace-question p {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+    }
+
+    .trace-opts {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .trace-opt {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      padding: 0.6rem 1.35rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5em;
+      background: var(--bg-glass);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.3s var(--ease-spring);
+      max-width: 380px;
+      text-align: left;
+    }
+
+    .trace-opt:hover {
+      border-color: var(--accent-blue);
+      background: var(--bg-glass-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .trace-opt.correct {
+      border-color: rgba(63, 185, 80, 0.4);
+      background: rgba(63, 185, 80, 0.08);
+      color: var(--accent-green);
+      box-shadow: 0 0 16px rgba(63, 185, 80, 0.15);
+    }
+
+    .trace-opt.wrong {
+      border-color: rgba(248, 81, 73, 0.4);
+      color: var(--accent-red);
+      box-shadow: 0 0 16px rgba(248, 81, 73, 0.15);
+    }
+
+    .trace-opt.disabled { pointer-events: none; opacity: 0.4; }
+
+    .trace-fb {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      min-height: 1.5em;
+      margin-top: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .trace-fb--correct { color: var(--accent-green); }
+    .trace-fb--wrong { color: var(--accent-red); }
+
+  </style>
+</head>
+<body>
+  <div class="mobile-gate">
+    <svg class="mobile-gate-anim" viewBox="0 0 180 140">
+      <path class="mg-edge" d="M 50,30 Q 70,25 90,45" />
+      <path class="mg-edge" d="M 50,30 Q 75,55 90,75" />
+      <path class="mg-edge" d="M 90,45 Q 90,60 90,75" />
+      <path class="mg-edge" d="M 90,75 Q 70,95 55,110" />
+      <path class="mg-edge" d="M 90,75 Q 110,95 125,110" />
+      <path class="mg-edge" d="M 55,110 Q 105,100 140,75" />
+      <path class="mg-edge" d="M 125,110 Q 135,95 140,75" />
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="3s" repeatCount="indefinite" begin="0s"><mpath href="#mgp1"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3s" repeatCount="indefinite" begin="0s"/></circle>
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="3.5s" repeatCount="indefinite" begin="1.2s"><mpath href="#mgp2"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3.5s" repeatCount="indefinite" begin="1.2s"/></circle>
+      <circle class="mg-particle--orange" r="1.5" opacity="0"><animateMotion dur="2.8s" repeatCount="indefinite" begin="0.5s"><mpath href="#mgp3"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="2.8s" repeatCount="indefinite" begin="0.5s"/></circle>
+      <circle class="mg-particle--purple" r="1.5" opacity="0"><animateMotion dur="3.2s" repeatCount="indefinite" begin="1.8s"><mpath href="#mgp4"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3.2s" repeatCount="indefinite" begin="1.8s"/></circle>
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0.8s"><mpath href="#mgp5"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="2.6s" repeatCount="indefinite" begin="0.8s"/></circle>
+      <defs>
+        <path id="mgp1" d="M 50,30 Q 70,25 90,45" />
+        <path id="mgp2" d="M 50,30 Q 75,55 90,75" />
+        <path id="mgp3" d="M 90,75 Q 70,95 55,110" />
+        <path id="mgp4" d="M 55,110 Q 105,100 140,75" />
+        <path id="mgp5" d="M 125,110 Q 135,95 140,75" />
+      </defs>
+      <circle class="mg-node" cx="50" cy="30" r="12" />
+      <text class="mg-label" x="50" y="33">gw</text>
+      <circle class="mg-node" cx="90" cy="45" r="10" />
+      <text class="mg-label" x="90" y="48">auth</text>
+      <circle class="mg-node" cx="90" cy="75" r="13" />
+      <text class="mg-label" x="90" y="78">api</text>
+      <circle class="mg-node" cx="55" cy="110" r="10" />
+      <text class="mg-label" x="55" y="113">ord</text>
+      <circle class="mg-node" cx="125" cy="110" r="10" />
+      <text class="mg-label" x="125" y="113">inv</text>
+      <circle class="mg-node" cx="140" cy="75" r="11" />
+      <text class="mg-label" x="140" y="78">db</text>
+    </svg>
+    <div class="mobile-gate-text" data-i18n-html="common.desktopOnlyText">Some paths require a wider view.<br>Return on a larger screen.</div>
+  </div>
+
+  <div class="koan-page">
+
+    <h1 class="koan-title" data-i18n="koan22.title">What You Carry</h1>
+
+    <div class="koan-text" data-i18n-html="koan22.zen">
+      The trace context carries the thread of identity.<br>But sometimes you need to carry something of your own across the boundary.
+    </div>
+
+    <!-- Scenario -->
+    <div class="bg-scenario" id="scenario" data-i18n-html="koan22.scenario">
+      A checkout request flows through three services: <strong>gateway</strong> &rarr; <strong>api</strong> &rarr; <strong>orders</strong>. The gateway knows the user is <strong>premium</strong>. Downstream, the orders service needs the customer tier for priority routing. Without baggage, each service must query the user database separately.
+    </div>
+
+    <!-- Phase 1: Without Baggage -->
+    <div class="bg-scene" id="phase1Scene">
+      <div class="bg-scene-header" data-i18n="koan22.phase1Header">without baggage</div>
+      <div class="bg-scene-body">
+        <div class="svc-chain" id="phase1Chain">
+          <div class="svc-node" id="p1-gw">gateway</div>
+          <div class="svc-arrow">&rarr;</div>
+          <div class="svc-node" id="p1-api">api</div>
+          <div class="svc-arrow">&rarr;</div>
+          <div class="svc-node" id="p1-orders">orders</div>
+        </div>
+
+        <!-- DB query arrows -->
+        <div class="bg-db-queries" id="dbQueries">
+          <div class="bg-db-call" id="dbCall1">
+            <span>gateway</span>
+            <span class="db-arrow">&rarr;</span>
+            <span data-i18n="koan22.dbQueryTier">DB: query tier</span>
+          </div>
+          <div class="bg-db-call" id="dbCall2">
+            <span>api</span>
+            <span class="db-arrow">&rarr;</span>
+            <span data-i18n="koan22.dbQueryTier">DB: query tier</span>
+          </div>
+          <div class="bg-db-call" id="dbCall3">
+            <span>orders</span>
+            <span class="db-arrow">&rarr;</span>
+            <span data-i18n="koan22.dbQueryTier">DB: query tier</span>
+          </div>
+        </div>
+
+        <div class="bg-db-count" id="dbCount">
+          <span class="count-num">3</span> <span data-i18n="koan22.redundantCalls">redundant DB calls for the same value</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bridge text -->
+    <div class="bg-bridge" id="bridge1" data-i18n-html="koan22.bridge1">
+      Every service that needs the customer tier must query the database independently. <strong>Three services, three round trips to the same database.</strong>
+    </div>
+
+    <!-- Phase 2 button -->
+    <div class="bg-controls" id="addBaggageControls">
+      <button class="koan-btn koan-btn--primary" id="addBaggageBtn" data-i18n="koan22.addBaggageBtn">Add baggage at the gateway</button>
+    </div>
+
+    <!-- Phase 2: With Baggage -->
+    <div class="bg-scene" id="phase2Scene">
+      <div class="bg-scene-header" data-i18n="koan22.phase2Header">with baggage</div>
+      <div class="bg-scene-body">
+        <div class="svc-chain" id="phase2Chain">
+          <div class="svc-node" id="p2-gw">gateway</div>
+          <div class="svc-arrow" id="p2-arrow1">&rarr;</div>
+          <div class="svc-node" id="p2-api">api</div>
+          <div class="svc-arrow" id="p2-arrow2">&rarr;</div>
+          <div class="svc-node" id="p2-orders">orders</div>
+        </div>
+
+        <!-- Baggage flowing through -->
+        <div class="bg-baggage-flow" id="baggageFlow">
+          <span class="bg-baggage-tag" data-i18n="koan22.baggageTag">baggage: user.tier=premium</span>
+          <span class="bg-baggage-arrow">&rarr;</span>
+          <span class="bg-baggage-tag" data-i18n="koan22.baggageReceived">api reads tier</span>
+          <span class="bg-baggage-arrow">&rarr;</span>
+          <span class="bg-baggage-tag" data-i18n="koan22.baggageReceived2">orders reads tier</span>
+        </div>
+
+        <div class="bg-no-db" id="noDbCount">
+          <span class="count-num">1</span> <span data-i18n="koan22.oneDbCall">DB call at gateway, zero downstream</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Question 1 -->
+    <div class="trace-question" id="q1">
+      <p data-i18n="koan22.q1">The gateway knows the user is premium. How should downstream services get this info?</p>
+      <div class="trace-opts">
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan22.q1FbDb" data-i18n="koan22.q1OptA">Each service queries the database</button>
+        <button class="trace-opt" data-answer="correct" data-fb-key="koan22.q1FbBaggage" data-i18n="koan22.q1OptB">Pass it through baggage</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan22.q1FbTrace" data-i18n="koan22.q1OptC">Add it to the trace context</button>
+      </div>
+      <div class="trace-fb" id="fb1"></div>
+    </div>
+
+    <!-- Question 2 -->
+    <div class="trace-question" id="q2">
+      <p data-i18n="koan22.q2">What is the difference between trace context and baggage?</p>
+      <div class="trace-opts">
+        <button class="trace-opt" data-answer="correct" data-fb-key="koan22.q2FbCorrect" data-i18n="koan22.q2OptA">Trace context carries telemetry identity, baggage carries application data</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan22.q2FbSame" data-i18n="koan22.q2OptB">They are the same thing</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan22.q2FbDebug" data-i18n="koan22.q2OptC">Baggage is only for debugging</button>
+      </div>
+      <div class="trace-fb" id="fb2"></div>
+    </div>
+
+    <!-- Insight -->
+    <div class="bg-insight" id="insight">
+      <p data-i18n="koan22.insightLine1">Trace context carries telemetry identity. Baggage carries your application data &mdash; user tier, priority, feature flags.</p>
+      <p data-i18n="koan22.insightLine2">Same propagation, different cargo. Baggage is not telemetry. It is business data riding on the same highway.</p>
+      <a href="23-span-links.html" data-i18n="common.continue">Continue &rarr;</a>
+    </div>
+  </div>
+
+  <div class="koan-progress">
+    <div class="koan-progress-fill" style="width: 79%"></div>
+  </div>
+
+  <script>
+    (function () {
+      function run() {
+        var phase1Scene = document.getElementById('phase1Scene');
+        var bridge1 = document.getElementById('bridge1');
+        var addBaggageControls = document.getElementById('addBaggageControls');
+        var addBaggageBtn = document.getElementById('addBaggageBtn');
+        var phase2Scene = document.getElementById('phase2Scene');
+        var q1 = document.getElementById('q1');
+        var q2 = document.getElementById('q2');
+
+        /* ── Phase 1: Show service chain without baggage ── */
+        setTimeout(function () {
+          phase1Scene.classList.add('visible');
+
+          /* Animate service nodes activating */
+          var nodes = ['p1-gw', 'p1-api', 'p1-orders'];
+          nodes.forEach(function (id, i) {
+            setTimeout(function () {
+              document.getElementById(id).classList.add('active');
+            }, 400 + i * 350);
+          });
+
+          /* Animate DB calls appearing */
+          var dbCalls = ['dbCall1', 'dbCall2', 'dbCall3'];
+          dbCalls.forEach(function (id, i) {
+            setTimeout(function () {
+              document.getElementById(id).classList.add('visible');
+            }, 1800 + i * 400);
+          });
+
+          /* Show redundant count */
+          setTimeout(function () {
+            document.getElementById('dbCount').classList.add('visible');
+          }, 3200);
+
+          /* Show bridge text */
+          setTimeout(function () {
+            bridge1.classList.add('visible');
+          }, 4000);
+
+          /* Show the "Add baggage" button */
+          setTimeout(function () {
+            addBaggageControls.classList.add('visible');
+          }, 4800);
+        }, 600);
+
+        /* ── Phase 2: Reveal baggage flow ── */
+        var baggageAdded = false;
+
+        addBaggageBtn.addEventListener('click', function () {
+          if (baggageAdded) return;
+          baggageAdded = true;
+
+          addBaggageBtn.style.opacity = '0';
+          addBaggageBtn.style.pointerEvents = 'none';
+
+          /* Show phase 2 scene */
+          phase2Scene.classList.add('visible');
+
+          /* Animate service nodes */
+          var nodes2 = ['p2-gw', 'p2-api', 'p2-orders'];
+          var arrows2 = ['p2-arrow1', 'p2-arrow2'];
+
+          nodes2.forEach(function (id, i) {
+            setTimeout(function () {
+              document.getElementById(id).classList.add('active-green');
+              if (arrows2[i - 1]) {
+                document.getElementById(arrows2[i - 1]).classList.add('lit');
+              }
+            }, 300 + i * 350);
+          });
+
+          /* Show baggage flowing */
+          setTimeout(function () {
+            document.getElementById('baggageFlow').classList.add('visible');
+          }, 1800);
+
+          /* Show single DB call count */
+          setTimeout(function () {
+            document.getElementById('noDbCount').classList.add('visible');
+          }, 2600);
+
+          /* Show Q1 */
+          setTimeout(function () {
+            q1.classList.add('visible');
+          }, 3400);
+        });
+
+        /* ── Quiz handler ── */
+        function setupQuestion(qEl, fbEl, onCorrect) {
+          var opts = qEl.querySelectorAll('.trace-opt');
+
+          opts.forEach(function (opt) {
+            opt.addEventListener('click', function () {
+              var fbKey = this.dataset.fbKey;
+              var feedbackText = fbKey ? i18n.t(fbKey) : '';
+
+              if (this.dataset.answer === 'correct') {
+                this.classList.add('correct');
+                opts.forEach(function (o) { o.classList.add('disabled'); });
+                fbEl.textContent = feedbackText;
+                fbEl.className = 'trace-fb trace-fb--correct';
+                if (onCorrect) {
+                  setTimeout(onCorrect, 800);
+                }
+              } else {
+                this.classList.add('wrong');
+                fbEl.textContent = feedbackText;
+                fbEl.className = 'trace-fb trace-fb--wrong';
+                var self = this;
+                setTimeout(function () { self.classList.remove('wrong'); }, 600);
+              }
+            });
+          });
+        }
+
+        /* Q1: how should downstream services get user tier? */
+        setupQuestion(q1, document.getElementById('fb1'), function () {
+          q2.classList.add('visible');
+        });
+
+        /* Q2: trace context vs baggage */
+        setupQuestion(q2, document.getElementById('fb2'), function () {
+          document.getElementById('insight').classList.add('visible');
+        });
+      }
+
+      if (window.i18n && window.i18n.t('common.desktopOnly') !== 'common.desktopOnly') { run(); }
+      else { window.addEventListener('i18n:ready', run, { once: true }); }
+    })();
+  </script>
+  <script src="../js/scroll.js"></script>
+  <script src="../js/music.js"></script>
+  <script src="../js/progress.js"></script>
+</body>
+</html>

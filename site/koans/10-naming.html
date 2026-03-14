@@ -82,27 +82,26 @@
     }
 
     .nm-your-btn {
-      font-family: var(--font-mono);
-      font-size: 0.9rem;
-      padding: 0.55rem 1.1rem;
-      border: 1px solid rgba(88, 166, 255, 0.4);
-      border-radius: 0.5em;
-      background: rgba(88, 166, 255, 0.1);
-      color: var(--accent-blue);
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      font-weight: 500;
+      padding: 0.6em 1.8em;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
       cursor: pointer;
-      transition: all 0.3s var(--ease-spring);
+      transition: background 0.3s var(--ease-smooth),
+                  color 0.3s var(--ease-smooth),
+                  border-color 0.3s var(--ease-smooth);
       white-space: nowrap;
-      animation: btn-breathe 2.5s var(--ease-smooth) infinite;
     }
 
     .nm-your-btn:hover {
-      background: rgba(88, 166, 255, 0.2);
-      border-color: var(--accent-blue);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      animation: none;
+      border-color: var(--text-secondary);
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.04);
     }
-    .nm-your-btn:disabled { opacity: 0.4; cursor: default; transform: none; box-shadow: none; animation: none; }
+    .nm-your-btn:disabled { opacity: 0.4; cursor: default; }
 
     .nm-your-echo {
       font-family: var(--font-mono);
@@ -518,47 +517,6 @@
     .nm-fb--correct { color: var(--accent-green); }
     .nm-fb--wrong { color: var(--accent-red); }
 
-    /* Insight */
-    .nm-insight {
-      text-align: center;
-      padding: 1.25rem;
-      background: var(--bg-glass);
-      border: 1px solid var(--border-subtle);
-      border-radius: 1em;
-      box-shadow: var(--shadow-inset);
-      opacity: 0;
-      max-height: 0;
-      overflow: hidden;
-      transition: opacity 0.6s var(--ease-smooth), max-height 0.5s var(--ease-smooth);
-    }
-
-    .nm-insight.visible {
-      opacity: 1;
-      max-height: 300px;
-      overflow: visible;
-    }
-
-    .nm-insight p {
-      font-family: var(--font-sans);
-      font-size: 0.95rem;
-      color: var(--text-secondary);
-      margin-bottom: 0.5rem;
-      line-height: 1.5;
-    }
-
-    .nm-insight strong { color: var(--accent-blue); }
-
-    .nm-insight a {
-      font-family: var(--font-mono);
-      font-size: 0.9rem;
-      color: var(--accent-blue);
-      text-decoration: none;
-      transition: all 0.3s var(--ease-spring);
-    }
-
-    .nm-insight a:hover {
-      text-decoration: underline;
-    }
   </style>
 </head>
 <body>
@@ -793,7 +751,7 @@
   </div>
 
   <div class="koan-progress">
-    <div class="koan-progress-fill" style="width: 47%"></div>
+    <div class="koan-progress-fill" style="width: 32%"></div>
   </div>
 
   <script>

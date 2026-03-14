@@ -306,40 +306,8 @@
     .inst-fb--correct { color: var(--accent-green); }
     .inst-fb--wrong { color: var(--accent-red); }
 
-    /* Insight */
-    .inst-insight {
-      text-align: center;
-      padding: 1.25rem;
-      background: var(--bg-glass);
-      border: 1px solid var(--border-subtle);
-      border-radius: 1em;
-      box-shadow: var(--shadow-inset);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.6s var(--ease-smooth);
-    }
-
-    .inst-insight.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .inst-insight p {
-      font-family: var(--font-sans);
-      font-size: 0.95rem;
-      color: var(--text-secondary);
-      margin-bottom: 0.5rem;
-    }
-
-    .inst-insight a {
-      font-family: var(--font-mono);
-      font-size: 0.9rem;
-      color: var(--accent-blue);
-      text-decoration: none;
-      transition: all 0.3s var(--ease-spring);
-    }
-
-    .inst-insight a:hover { text-decoration: underline; }
+    .inst-insight { pointer-events: none; }
+    .inst-insight.visible { pointer-events: auto; }
 
     /* Two-column layout for code + toolbox */
     .inst-workspace {
@@ -487,7 +455,7 @@
   </div>
 
   <div class="koan-progress">
-    <div class="koan-progress-fill" style="width: 57%"></div>
+    <div class="koan-progress-fill" style="width: 39%"></div>
   </div>
 
   <script>

@@ -32,8 +32,9 @@
     }
 
     .opening-title {
-      font-family: var(--font-mono);
+      font-family: var(--font-sans);
       font-size: 0.75rem;
+      font-weight: 500;
       color: var(--text-muted);
       letter-spacing: 0.25em;
       text-transform: uppercase;
@@ -43,14 +44,14 @@
     }
 
     .opening-koan {
-      font-family: var(--font-sans);
-      font-size: 1.15rem;
+      font-family: var(--font-serif);
+      font-size: 1.25rem;
       font-style: italic;
       color: var(--text-secondary);
-      line-height: 2;
+      line-height: 1.85;
       max-width: 540px;
       text-align: center;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
       opacity: 0;
       animation: fadeIn 2.5s var(--ease-smooth) 1.5s forwards;
     }
@@ -58,9 +59,8 @@
     .system-container {
       position: relative;
       width: 100%;
-      max-width: 750px;
-      height: 420px;
-      margin-bottom: 1.5rem;
+      max-width: 700px;
+      margin: 0 auto 1rem;
       opacity: 0;
       animation: fadeIn 2s var(--ease-smooth) 3s forwards;
     }
@@ -119,9 +119,7 @@
     }
 
     .opening-prompt .koan-btn {
-      font-size: 0.95rem;
-      padding: 0.75em 2.5em;
-      border-radius: 2em;
+      padding: 0.6em 2.5em;
     }
 
     .opening-prompt .koan-hint {
@@ -130,7 +128,8 @@
     }
 
     .opening-insight {
-      font-family: var(--font-sans);
+      font-family: var(--font-serif);
+      font-style: italic;
       font-size: 1.05rem;
       color: var(--accent-green);
       text-align: center;
@@ -144,6 +143,7 @@
     .opening-continue {
       text-align: center;
       margin-top: 1.25rem;
+      margin-bottom: 5rem;
       opacity: 0;
       transition: opacity 1.5s var(--ease-smooth) 0.8s;
     }
@@ -151,19 +151,22 @@
     .opening-continue.visible { opacity: 1; }
 
     .opening-continue a {
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
-      color: var(--accent-blue);
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text-secondary);
       text-decoration: none;
-      padding: 0.4em 1em;
-      border-radius: 2em;
-      border: 1px solid rgba(88, 166, 255, 0.2);
-      transition: all 0.3s var(--ease-spring);
+      padding: 0.6em 1.8em;
+      border: 1px solid var(--border);
+      transition: background 0.3s var(--ease-smooth),
+                  color 0.3s var(--ease-smooth),
+                  border-color 0.3s var(--ease-smooth);
     }
 
     .opening-continue a:hover {
-      background: rgba(88, 166, 255, 0.08);
-      border-color: rgba(88, 166, 255, 0.4);
+      border-color: var(--text-secondary);
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.04);
     }
 
     @keyframes fadeIn {
@@ -228,7 +231,7 @@
     </div>
 
     <div class="system-container">
-      <svg class="system-svg" viewBox="0 0 700 400" id="systemDiagram">
+      <svg class="system-svg" viewBox="0 0 700 340" id="systemDiagram">
         <!-- Edges -->
         <g class="edges">
           <path class="edge" id="edge-gw-auth" d="M 200,80 Q 250,60 300,100" />
@@ -290,14 +293,12 @@
         Observe
       </button>
       <div class="koan-hint" data-i18n="index.observeHint">What changes when you can see?</div>
-    </div>
-
-    <div class="opening-insight" id="insight" data-i18n="index.insight">
-      Now the system speaks. Now you can listen.
-    </div>
-
-    <div class="opening-continue" id="continueLink">
-      <a href="koans/01-telemetry.html" data-i18n="index.beginLink">Begin the path &rarr;</a>
+      <div class="opening-insight" id="insight" data-i18n="index.insight">
+        Now the system speaks. Now you can listen.
+      </div>
+      <div class="opening-continue" id="continueLink">
+        <a href="koans/01-telemetry.html" data-i18n="index.beginLink">Begin the path &rarr;</a>
+      </div>
     </div>
   </div>
 
@@ -398,11 +399,15 @@
             });
           }, 2000);
 
-          // Hide button, show insight
+          // Hide button and hint, collapse them so insight takes their place
           setTimeout(function () {
             btn.style.opacity = '0';
             btn.style.pointerEvents = 'none';
             btn.parentElement.querySelector('.koan-hint').style.opacity = '0';
+            setTimeout(function () {
+              btn.style.display = 'none';
+              btn.parentElement.querySelector('.koan-hint').style.display = 'none';
+            }, 600);
           }, 1000);
 
           setTimeout(function () {

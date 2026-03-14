@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="koan27.pageTitle">Koan 27: Reshaping in Flight - OpenTelemetry Koans</title>
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../img/apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <meta name="theme-color" content="#0a0e14">
+  <link rel="stylesheet" href="../css/shared.css">
+  <script src="../js/i18n.js"></script>
+  <style>
+    /* ── Raw / Processed telemetry panels ── */
+    .ct-panel {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 1em;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+      box-shadow: var(--shadow-inset);
+    }
+
+    .ct-panel.visible { opacity: 1; }
+
+    .ct-panel-header {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ct-panel-body {
+      padding: 1.25rem 1.5rem;
+    }
+
+    /* ── Span rows inside panels ── */
+    .ct-span-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+      opacity: 0;
+      transform: translateY(6px);
+      transition: all 0.4s var(--ease-smooth);
+    }
+
+    .ct-span-row:last-child { border-bottom: none; }
+
+    .ct-span-row.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .ct-span-name {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      min-width: 120px;
+      flex-shrink: 0;
+    }
+
+    .ct-span-attrs {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+    }
+
+    .ct-attr {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .ct-attr .attr-key {
+      color: var(--text-secondary);
+    }
+
+    .ct-attr .attr-val {
+      color: var(--text-muted);
+    }
+
+    /* Problem highlights */
+    .ct-problem {
+      color: var(--accent-red);
+    }
+
+    .ct-problem .attr-key {
+      color: var(--accent-red);
+    }
+
+    .ct-problem .attr-val {
+      color: var(--accent-red);
+      opacity: 0.8;
+    }
+
+    .ct-problem-tag {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      padding: 0.15rem 0.5rem;
+      border: 1px solid rgba(248, 81, 73, 0.3);
+      border-radius: 2em;
+      color: var(--accent-red);
+      background: rgba(248, 81, 73, 0.06);
+      white-space: nowrap;
+      margin-left: 0.5rem;
+    }
+
+    /* Fixed highlights */
+    .ct-fixed {
+      color: var(--accent-green);
+    }
+
+    .ct-fixed .attr-key {
+      color: var(--accent-green);
+    }
+
+    .ct-fixed .attr-val {
+      color: var(--accent-green);
+      opacity: 0.8;
+    }
+
+    .ct-fixed-tag {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      padding: 0.15rem 0.5rem;
+      border: 1px solid rgba(63, 185, 80, 0.3);
+      border-radius: 2em;
+      color: var(--accent-green);
+      background: rgba(63, 185, 80, 0.06);
+      white-space: nowrap;
+      margin-left: 0.5rem;
+    }
+
+    .ct-dropped {
+      text-decoration: line-through;
+      opacity: 0.4;
+    }
+
+    .ct-dropped-tag {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      padding: 0.15rem 0.5rem;
+      border: 1px solid rgba(139, 148, 158, 0.3);
+      border-radius: 2em;
+      color: var(--text-muted);
+      background: rgba(139, 148, 158, 0.06);
+      white-space: nowrap;
+      margin-left: 0.5rem;
+      text-decoration: none;
+    }
+
+    /* ── Collector pipeline diagram ── */
+    .ct-pipeline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 1.25rem;
+      padding: 1.5rem 1rem;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: 1em;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-inset);
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+    }
+
+    .ct-pipeline.visible { opacity: 1; }
+
+    .ct-pipe-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 160px;
+      height: 64px;
+      border: 1px solid var(--border);
+      border-radius: 1em;
+      background: var(--bg-glass);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      transition: all 0.6s var(--ease-smooth);
+      position: relative;
+      z-index: 1;
+    }
+
+    .ct-pipe-box-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.15rem;
+    }
+
+    .ct-pipe-box.active {
+      border-color: rgba(88, 166, 255, 0.4);
+      color: var(--accent-blue);
+      box-shadow: 0 0 14px rgba(88, 166, 255, 0.12);
+    }
+
+    .ct-pipe-box.active-green {
+      border-color: rgba(63, 185, 80, 0.4);
+      color: var(--accent-green);
+      box-shadow: 0 0 14px rgba(63, 185, 80, 0.15);
+    }
+
+    .ct-pipe-box.active-orange {
+      border-color: rgba(210, 153, 34, 0.4);
+      color: var(--accent-orange);
+      box-shadow: 0 0 14px rgba(210, 153, 34, 0.15);
+    }
+
+    .ct-pipe-arrow {
+      width: 40px;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--border);
+      transition: color 0.4s var(--ease-smooth);
+    }
+
+    .ct-pipe-arrow.lit { color: var(--accent-green); }
+
+    /* ── YAML config block ── */
+    .ct-config {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 1em;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      opacity: 0;
+      max-height: 0;
+      box-shadow: var(--shadow-inset);
+      transition: opacity 0.6s var(--ease-smooth), max-height 0.8s ease;
+    }
+
+    .ct-config.visible {
+      opacity: 1;
+      max-height: 600px;
+    }
+
+    .ct-config-header {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .ct-config-body {
+      padding: 1.25rem 1.5rem;
+    }
+
+    .ct-yaml {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      line-height: 1.8;
+      color: var(--text-secondary);
+      white-space: pre;
+    }
+
+    .ct-yaml .yaml-key { color: var(--accent-blue); }
+    .ct-yaml .yaml-val { color: var(--accent-green); }
+    .ct-yaml .yaml-comment { color: var(--text-muted); opacity: 0.6; }
+
+    /* ── Narrative / bridge text ── */
+    .ct-narrative {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      text-align: center;
+      margin: 0.75rem 0;
+      line-height: 1.7;
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+    }
+
+    .ct-narrative.visible { opacity: 1; }
+
+    .ct-narrative strong { color: var(--text-primary); }
+
+    /* ── Question panels ── */
+    .trace-question {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 1em;
+      padding: 1.25rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      box-shadow: var(--shadow-inset);
+      transition: opacity 0.6s var(--ease-smooth), max-height 0.6s, padding 0.6s;
+    }
+
+    .trace-question.visible {
+      opacity: 1;
+      max-height: 20rem;
+      padding: 1.25rem;
+    }
+
+    .trace-question p {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+    }
+
+    .trace-opts {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .trace-opt {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      padding: 0.6rem 1.35rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5em;
+      background: var(--bg-glass);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.3s var(--ease-spring);
+      max-width: 380px;
+      text-align: left;
+    }
+
+    .trace-opt:hover {
+      border-color: var(--accent-blue);
+      background: var(--bg-glass-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .trace-opt.correct {
+      border-color: rgba(63, 185, 80, 0.4);
+      background: rgba(63, 185, 80, 0.08);
+      color: var(--accent-green);
+      box-shadow: 0 0 16px rgba(63, 185, 80, 0.15);
+    }
+
+    .trace-opt.wrong {
+      border-color: rgba(248, 81, 73, 0.4);
+      color: var(--accent-red);
+      box-shadow: 0 0 16px rgba(248, 81, 73, 0.15);
+    }
+
+    .trace-opt.disabled { pointer-events: none; opacity: 0.4; }
+
+    .trace-fb {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      min-height: 1.5em;
+      margin-top: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .trace-fb--correct { color: var(--accent-green); }
+    .trace-fb--wrong { color: var(--accent-red); }
+  </style>
+</head>
+<body>
+  <div class="mobile-gate">
+    <svg class="mobile-gate-anim" viewBox="0 0 180 140">
+      <path class="mg-edge" d="M 50,30 Q 70,25 90,45" />
+      <path class="mg-edge" d="M 50,30 Q 75,55 90,75" />
+      <path class="mg-edge" d="M 90,45 Q 90,60 90,75" />
+      <path class="mg-edge" d="M 90,75 Q 70,95 55,110" />
+      <path class="mg-edge" d="M 90,75 Q 110,95 125,110" />
+      <path class="mg-edge" d="M 55,110 Q 105,100 140,75" />
+      <path class="mg-edge" d="M 125,110 Q 135,95 140,75" />
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="3s" repeatCount="indefinite" begin="0s"><mpath href="#mgp1"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3s" repeatCount="indefinite" begin="0s"/></circle>
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="3.5s" repeatCount="indefinite" begin="1.2s"><mpath href="#mgp2"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3.5s" repeatCount="indefinite" begin="1.2s"/></circle>
+      <circle class="mg-particle--orange" r="1.5" opacity="0"><animateMotion dur="2.8s" repeatCount="indefinite" begin="0.5s"><mpath href="#mgp3"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="2.8s" repeatCount="indefinite" begin="0.5s"/></circle>
+      <circle class="mg-particle--purple" r="1.5" opacity="0"><animateMotion dur="3.2s" repeatCount="indefinite" begin="1.8s"><mpath href="#mgp4"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3.2s" repeatCount="indefinite" begin="1.8s"/></circle>
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0.8s"><mpath href="#mgp5"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="2.6s" repeatCount="indefinite" begin="0.8s"/></circle>
+      <defs>
+        <path id="mgp1" d="M 50,30 Q 70,25 90,45" />
+        <path id="mgp2" d="M 50,30 Q 75,55 90,75" />
+        <path id="mgp3" d="M 90,75 Q 70,95 55,110" />
+        <path id="mgp4" d="M 55,110 Q 105,100 140,75" />
+        <path id="mgp5" d="M 125,110 Q 135,95 140,75" />
+      </defs>
+      <circle class="mg-node" cx="50" cy="30" r="12" />
+      <text class="mg-label" x="50" y="33">gw</text>
+      <circle class="mg-node" cx="90" cy="45" r="10" />
+      <text class="mg-label" x="90" y="48">auth</text>
+      <circle class="mg-node" cx="90" cy="75" r="13" />
+      <text class="mg-label" x="90" y="78">api</text>
+      <circle class="mg-node" cx="55" cy="110" r="10" />
+      <text class="mg-label" x="55" y="113">ord</text>
+      <circle class="mg-node" cx="125" cy="110" r="10" />
+      <text class="mg-label" x="125" y="113">inv</text>
+      <circle class="mg-node" cx="140" cy="75" r="11" />
+      <text class="mg-label" x="140" y="78">db</text>
+    </svg>
+    <div class="mobile-gate-text" data-i18n-html="common.desktopOnlyText">Some paths require a wider view.<br>Return on a larger screen.</div>
+  </div>
+
+  <div class="koan-page">
+
+    <h1 class="koan-title" data-i18n="koan27.title">Reshaping in Flight</h1>
+
+    <div class="koan-text" data-i18n-html="koan27.zen">
+      The application sends what it knows.<br>The collector shapes it into what you need.
+    </div>
+
+    <!-- ═══ Raw Telemetry Panel ═══ -->
+    <div class="ct-panel" id="rawPanel">
+      <div class="ct-panel-header">
+        <span data-i18n="koan27.rawHeader">raw telemetry from applications</span>
+        <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-red);" data-i18n="koan27.rawBadge">3 problems</span>
+      </div>
+      <div class="ct-panel-body">
+        <!-- Span 1: PII -->
+        <div class="ct-span-row" id="rawSpan1">
+          <div class="ct-span-name">POST /checkout</div>
+          <div class="ct-span-attrs">
+            <div class="ct-attr"><span class="attr-key">http.method:</span> <span class="attr-val">POST</span></div>
+            <div class="ct-attr ct-problem"><span class="attr-key">user.email:</span> <span class="attr-val">alice@example.com</span> <span class="ct-problem-tag" data-i18n="koan27.piiTag">PII</span></div>
+          </div>
+        </div>
+
+        <!-- Span 2: No environment -->
+        <div class="ct-span-row" id="rawSpan2">
+          <div class="ct-span-name">GET /api/orders</div>
+          <div class="ct-span-attrs">
+            <div class="ct-attr"><span class="attr-key">http.method:</span> <span class="attr-val">GET</span></div>
+            <div class="ct-attr"><span class="attr-key">http.status:</span> <span class="attr-val">200</span></div>
+            <div class="ct-attr ct-problem"><span class="attr-key">deployment.environment:</span> <span class="attr-val" data-i18n="koan27.missingVal">(missing)</span> <span class="ct-problem-tag" data-i18n="koan27.noEnvTag">no env tag</span></div>
+          </div>
+        </div>
+
+        <!-- Span 3: Debug noise -->
+        <div class="ct-span-row" id="rawSpan3">
+          <div class="ct-span-name">healthcheck</div>
+          <div class="ct-span-attrs">
+            <div class="ct-attr"><span class="attr-key">span.kind:</span> <span class="attr-val">internal</span></div>
+            <div class="ct-attr ct-problem"><span class="attr-key">debug:</span> <span class="attr-val">true</span> <span class="ct-problem-tag" data-i18n="koan27.noiseTag">noise</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Narrative 1 ═══ -->
+    <div class="ct-narrative" id="narrative1" data-i18n-html="koan27.narrative1">
+      Three problems. A <strong>PII leak</strong> in an attribute, a <strong>missing environment tag</strong>, and <strong>debug spans</strong> cluttering production. Fixing these in application code means changing and redeploying every service.
+    </div>
+
+    <!-- ═══ Collector Pipeline Diagram ═══ -->
+    <div class="ct-pipeline" id="pipeline">
+      <div class="ct-pipe-box" id="pipeRecv">
+        <div class="ct-pipe-box-label" data-i18n="koan27.pipeRecvLabel">receiver</div>
+        <span>OTLP</span>
+      </div>
+      <div class="ct-pipe-arrow" id="pipeArrow1">&rarr;</div>
+      <div class="ct-pipe-box" id="pipeTransform">
+        <div class="ct-pipe-box-label" data-i18n="koan27.pipeTransformLabel">processor</div>
+        <span data-i18n="koan27.pipeTransformName">transform</span>
+      </div>
+      <div class="ct-pipe-arrow" id="pipeArrow2">&rarr;</div>
+      <div class="ct-pipe-box" id="pipeExport">
+        <div class="ct-pipe-box-label" data-i18n="koan27.pipeExportLabel">exporter</div>
+        <span>OTLP</span>
+      </div>
+    </div>
+
+    <!-- ═══ Narrative 2 ═══ -->
+    <div class="ct-narrative" id="narrative2" data-i18n-html="koan27.narrative2">
+      The <strong>transform processor</strong> sits in the collector pipeline. It can delete attributes, add new ones, and drop entire spans &mdash; all through configuration, no code changes.
+    </div>
+
+    <!-- ═══ YAML Config ═══ -->
+    <div class="ct-config" id="configPanel">
+      <div class="ct-config-header" data-i18n="koan27.configHeader">collector config (simplified)</div>
+      <div class="ct-config-body">
+        <div class="ct-yaml"><span class="yaml-key">processors:</span>
+  <span class="yaml-key">transform:</span>
+    <span class="yaml-key">trace_statements:</span>
+      <span class="yaml-comment"># Strip PII</span>
+      - <span class="yaml-key">context:</span> <span class="yaml-val">span</span>
+        <span class="yaml-key">statements:</span>
+          - <span class="yaml-val">delete_key(attributes, "user.email")</span>
+
+      <span class="yaml-comment"># Add environment tag</span>
+      - <span class="yaml-key">context:</span> <span class="yaml-val">resource</span>
+        <span class="yaml-key">statements:</span>
+          - <span class="yaml-val">set(attributes["deployment.environment"], "production")</span>
+
+  <span class="yaml-key">filter:</span>
+    <span class="yaml-key">traces:</span>
+      <span class="yaml-key">span:</span>
+        <span class="yaml-comment"># Drop debug spans</span>
+        - <span class="yaml-val">'attributes["debug"] == true'</span></div>
+      </div>
+    </div>
+
+    <!-- ═══ Processed Telemetry Panel ═══ -->
+    <div class="ct-panel" id="processedPanel">
+      <div class="ct-panel-header">
+        <span data-i18n="koan27.processedHeader">processed telemetry after transform</span>
+        <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-green);" data-i18n="koan27.processedBadge">clean</span>
+      </div>
+      <div class="ct-panel-body">
+        <!-- Span 1: PII stripped -->
+        <div class="ct-span-row" id="procSpan1">
+          <div class="ct-span-name">POST /checkout</div>
+          <div class="ct-span-attrs">
+            <div class="ct-attr"><span class="attr-key">http.method:</span> <span class="attr-val">POST</span></div>
+            <div class="ct-attr ct-fixed"><span class="attr-key">user.email:</span> <span class="attr-val ct-dropped" data-i18n="koan27.removedVal">(removed)</span> <span class="ct-fixed-tag" data-i18n="koan27.piiStripped">PII stripped</span></div>
+          </div>
+        </div>
+
+        <!-- Span 2: Environment added -->
+        <div class="ct-span-row" id="procSpan2">
+          <div class="ct-span-name">GET /api/orders</div>
+          <div class="ct-span-attrs">
+            <div class="ct-attr"><span class="attr-key">http.method:</span> <span class="attr-val">GET</span></div>
+            <div class="ct-attr"><span class="attr-key">http.status:</span> <span class="attr-val">200</span></div>
+            <div class="ct-attr ct-fixed"><span class="attr-key">deployment.environment:</span> <span class="attr-val">production</span> <span class="ct-fixed-tag" data-i18n="koan27.envAdded">added</span></div>
+          </div>
+        </div>
+
+        <!-- Span 3: Dropped -->
+        <div class="ct-span-row" id="procSpan3">
+          <div class="ct-span-name ct-dropped">healthcheck</div>
+          <div class="ct-span-attrs">
+            <div class="ct-attr ct-dropped"><span class="attr-key">span.kind:</span> <span class="attr-val">internal</span></div>
+            <div class="ct-attr ct-dropped"><span class="attr-key">debug:</span> <span class="attr-val">true</span></div>
+            <span class="ct-dropped-tag" data-i18n="koan27.spanDropped">dropped by filter</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Narrative 3 ═══ -->
+    <div class="ct-narrative" id="narrative3" data-i18n-html="koan27.narrative3">
+      Same applications. <strong>Zero code changes.</strong> The collector reshaped the telemetry before it reached storage.
+    </div>
+
+    <!-- ═══ Question 1 ═══ -->
+    <div class="trace-question" id="q1">
+      <p data-i18n="koan27.q1">An attribute contains user.email with PII. Where should you remove it?</p>
+      <div class="trace-opts">
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan27.q1FbApp" data-i18n="koan27.q1OptA">In the application code</button>
+        <button class="trace-opt" data-answer="correct" data-fb-key="koan27.q1FbTransform" data-i18n="koan27.q1OptB">In the collector's transform processor</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan27.q1FbBackend" data-i18n="koan27.q1OptC">In the backend/storage</button>
+      </div>
+      <div class="trace-fb" id="fb1"></div>
+    </div>
+
+    <!-- ═══ Question 2 ═══ -->
+    <div class="trace-question" id="q2">
+      <p data-i18n="koan27.q2">What is the main advantage of transforming telemetry in the collector?</p>
+      <div class="trace-opts">
+        <button class="trace-opt" data-answer="correct" data-fb-key="koan27.q2FbConfig" data-i18n="koan27.q2OptA">Change what gets exported without redeploying applications</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan27.q2FbAccuracy" data-i18n="koan27.q2OptB">It makes telemetry more accurate</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan27.q2FbOnly" data-i18n="koan27.q2OptC">It's the only way to add attributes</button>
+      </div>
+      <div class="trace-fb" id="fb2"></div>
+    </div>
+
+    <!-- ═══ Insight ═══ -->
+    <div class="ct-insight" id="insight">
+      <p data-i18n="koan27.insightLine1">The collector's transform processor is your last chance to shape telemetry before it reaches storage. Strip PII, enrich with environment tags, drop noise &mdash; all without touching a single line of application code.</p>
+      <p data-i18n="koan27.insightLine2">You can now produce, connect, and manage the three golden signals. But when a span is slow, they can tell you where &mdash; not what the code was doing. That question needs a different kind of answer.</p>
+      <a href="28-profiling.html" data-i18n="common.continue">Continue &rarr;</a>
+    </div>
+  </div>
+
+  <div class="koan-progress">
+    <div class="koan-progress-fill" style="width: 96%"></div>
+  </div>
+
+  <script>
+    (function () {
+      function run() {
+        /* ── Phase 1: Show raw telemetry ── */
+        var rawPanel = document.getElementById('rawPanel');
+        var narrative1 = document.getElementById('narrative1');
+        var pipeline = document.getElementById('pipeline');
+        var narrative2 = document.getElementById('narrative2');
+        var configPanel = document.getElementById('configPanel');
+        var processedPanel = document.getElementById('processedPanel');
+        var narrative3 = document.getElementById('narrative3');
+
+        setTimeout(function () {
+          rawPanel.classList.add('visible');
+
+          /* Animate raw span rows */
+          var rawSpans = ['rawSpan1', 'rawSpan2', 'rawSpan3'];
+          rawSpans.forEach(function (id, i) {
+            setTimeout(function () {
+              document.getElementById(id).classList.add('visible');
+            }, 300 + i * 400);
+          });
+        }, 600);
+
+        /* Show narrative 1 */
+        setTimeout(function () {
+          narrative1.classList.add('visible');
+        }, 2600);
+
+        /* ── Phase 2: Show collector pipeline ── */
+        setTimeout(function () {
+          pipeline.classList.add('visible');
+
+          /* Animate pipeline boxes activating */
+          setTimeout(function () {
+            document.getElementById('pipeRecv').classList.add('active');
+          }, 400);
+
+          setTimeout(function () {
+            document.getElementById('pipeArrow1').classList.add('lit');
+          }, 700);
+
+          setTimeout(function () {
+            document.getElementById('pipeTransform').classList.add('active-orange');
+          }, 1000);
+
+          setTimeout(function () {
+            document.getElementById('pipeArrow2').classList.add('lit');
+          }, 1300);
+
+          setTimeout(function () {
+            document.getElementById('pipeExport').classList.add('active-green');
+          }, 1600);
+        }, 3400);
+
+        /* Show narrative 2 */
+        setTimeout(function () {
+          narrative2.classList.add('visible');
+        }, 5400);
+
+        /* ── Phase 3: Show config ── */
+        setTimeout(function () {
+          configPanel.classList.add('visible');
+        }, 6200);
+
+        /* ── Phase 4: Show processed telemetry ── */
+        setTimeout(function () {
+          processedPanel.classList.add('visible');
+
+          var procSpans = ['procSpan1', 'procSpan2', 'procSpan3'];
+          procSpans.forEach(function (id, i) {
+            setTimeout(function () {
+              document.getElementById(id).classList.add('visible');
+            }, 300 + i * 400);
+          });
+        }, 7400);
+
+        /* Show narrative 3 */
+        setTimeout(function () {
+          narrative3.classList.add('visible');
+        }, 9000);
+
+        /* ── Phase 5: Show Q1 ── */
+        setTimeout(function () {
+          document.getElementById('q1').classList.add('visible');
+        }, 9800);
+
+        /* ── Quiz handler ── */
+        function setupQuestion(qEl, fbEl, onCorrect) {
+          var opts = qEl.querySelectorAll('.trace-opt');
+
+          opts.forEach(function (opt) {
+            opt.addEventListener('click', function () {
+              var fbKey = this.dataset.fbKey;
+              var feedbackText = fbKey ? i18n.t(fbKey) : '';
+
+              if (this.dataset.answer === 'correct') {
+                this.classList.add('correct');
+                opts.forEach(function (o) { o.classList.add('disabled'); });
+                fbEl.textContent = feedbackText;
+                fbEl.className = 'trace-fb trace-fb--correct';
+                if (onCorrect) {
+                  setTimeout(onCorrect, 800);
+                }
+              } else {
+                this.classList.add('wrong');
+                fbEl.textContent = feedbackText;
+                fbEl.className = 'trace-fb trace-fb--wrong';
+                var self = this;
+                setTimeout(function () { self.classList.remove('wrong'); }, 600);
+              }
+            });
+          });
+        }
+
+        /* Q1: Where to remove PII? */
+        setupQuestion(
+          document.getElementById('q1'),
+          document.getElementById('fb1'),
+          function () {
+            document.getElementById('q2').classList.add('visible');
+          }
+        );
+
+        /* Q2: Main advantage of collector transforms? */
+        setupQuestion(
+          document.getElementById('q2'),
+          document.getElementById('fb2'),
+          function () {
+            document.getElementById('insight').classList.add('visible');
+          }
+        );
+      }
+
+      if (window.i18n && window.i18n.t('common.desktopOnly') !== 'common.desktopOnly') { run(); }
+      else { window.addEventListener('i18n:ready', run, { once: true }); }
+    })();
+  </script>
+  <script src="../js/scroll.js"></script>
+  <script src="../js/music.js"></script>
+  <script src="../js/progress.js"></script>
+</body>
+</html>

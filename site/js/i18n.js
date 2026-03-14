@@ -5,9 +5,9 @@
   'use strict';
 
   var STORAGE_KEY = 'otel-koans-lang';
-  var DEFAULT_LOCALE = 'en';
+  var DEFAULT_LOCALE = 'en-US';
   var SUPPORTED = [
-    { code: 'en',    name: 'English' },
+    { code: 'en-US', name: 'English (US)' },
     { code: 'pt-BR', name: 'Portugu\u00eas (BR)' }
   ];
   var strings = {};

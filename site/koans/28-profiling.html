@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="koan28.pageTitle">Koan 28: The Deepest Layer - OpenTelemetry Koans</title>
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../img/apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <meta name="theme-color" content="#0a0e14">
+  <link rel="stylesheet" href="../css/shared.css">
+  <script src="../js/i18n.js"></script>
+  <style>
+    /* ── Narrative text ── */
+    .pf-narrative {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      text-align: center;
+      margin: 1rem 0;
+      line-height: 1.7;
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+    }
+
+    .pf-narrative.visible { opacity: 1; }
+    .pf-narrative strong { color: var(--text-primary); }
+
+    /* ── Trace waterfall panel ── */
+    .pf-waterfall {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 1em;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-inset);
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+    }
+
+    .pf-waterfall.visible { opacity: 1; }
+
+    .pf-panel-header {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pf-waterfall-body {
+      padding: 1rem 1.25rem;
+    }
+
+    .pf-span-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.35rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      opacity: 0;
+      transform: translateX(-8px);
+      transition: all 0.5s var(--ease-spring);
+    }
+
+    .pf-span-row.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .pf-span-name {
+      width: 100px;
+      flex-shrink: 0;
+      color: var(--text-secondary);
+      text-align: right;
+    }
+
+    .pf-span-bar-wrap {
+      flex: 1;
+      height: 22px;
+      background: var(--bg-primary);
+      border-radius: 0.5em;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pf-span-bar {
+      height: 100%;
+      border-radius: 0.5em;
+      opacity: 0.6;
+      position: absolute;
+      top: 0;
+      left: 0;
+      transition: opacity 0.4s;
+    }
+
+    .pf-span-bar.ok { background: var(--accent-green); }
+    .pf-span-bar.slow { background: var(--accent-red); }
+
+    .pf-span-bar.slow.pulse {
+      animation: slowPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes slowPulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 0.8; }
+    }
+
+    .pf-span-dur {
+      width: 60px;
+      flex-shrink: 0;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    .pf-span-dur.slow-text { color: var(--accent-red); font-weight: 600; }
+
+    /* ── Flamegraph panel ── */
+    .pf-flamegraph {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 1em;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-inset);
+      opacity: 0;
+      max-height: 0;
+      transition: opacity 0.6s var(--ease-smooth), max-height 0.8s ease;
+    }
+
+    .pf-flamegraph.visible {
+      opacity: 1;
+      max-height: 500px;
+    }
+
+    .pf-flame-body {
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .pf-flame-bar {
+      height: 38px;
+      border-radius: 0.4em;
+      display: flex;
+      align-items: center;
+      padding: 0 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: rgba(255, 255, 255, 0.9);
+      position: relative;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: all 0.5s var(--ease-spring);
+      cursor: default;
+    }
+
+    .pf-flame-bar.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .pf-flame-bar:hover {
+      filter: brightness(1.15);
+    }
+
+    .pf-flame-bar .pf-flame-label {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pf-flame-bar .pf-flame-dur {
+      flex-shrink: 0;
+      font-size: 0.72rem;
+      opacity: 0.8;
+      margin-left: 0.5rem;
+    }
+
+    /* Flamegraph bar colors — warm palette */
+    .pf-flame-bar.depth-0 {
+      background: linear-gradient(90deg, #cc4125, #d95a3e);
+      width: 100%;
+    }
+
+    .pf-flame-bar.depth-1 {
+      background: linear-gradient(90deg, #d4602e, #e07840);
+      width: 97.5%;
+    }
+
+    .pf-flame-bar.depth-2 {
+      background: linear-gradient(90deg, #dc7e38, #e89548);
+      width: 90%;
+    }
+
+    .pf-flame-bar.depth-3 {
+      background: linear-gradient(90deg, #e49c42, #f0b052);
+      width: 85%;
+      animation: rootCauseGlow 2.5s ease-in-out infinite;
+    }
+
+    @keyframes rootCauseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(240, 176, 82, 0); }
+      50% { box-shadow: 0 0 16px 2px rgba(240, 176, 82, 0.25); }
+    }
+
+    .pf-flame-annotation {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--accent-orange);
+      text-align: center;
+      margin-top: 0.5rem;
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+    }
+
+    .pf-flame-annotation.visible { opacity: 1; }
+
+    /* ── Question panels ── */
+    .trace-question {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 1em;
+      padding: 1.25rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      box-shadow: var(--shadow-inset);
+      transition: opacity 0.6s var(--ease-smooth), max-height 0.6s, padding 0.6s;
+    }
+
+    .trace-question.visible {
+      opacity: 1;
+      max-height: 20rem;
+      padding: 1.25rem;
+    }
+
+    .trace-question p {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+    }
+
+    .trace-opts {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .trace-opt {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      padding: 0.6rem 1.35rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5em;
+      background: var(--bg-glass);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.3s var(--ease-spring);
+      max-width: 420px;
+      text-align: left;
+    }
+
+    .trace-opt:hover {
+      border-color: var(--accent-blue);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .trace-opt.correct {
+      border-color: rgba(63, 185, 80, 0.4);
+      background: rgba(63, 185, 80, 0.08);
+      color: var(--accent-green);
+      box-shadow: 0 0 16px rgba(63, 185, 80, 0.15);
+    }
+
+    .trace-opt.wrong {
+      border-color: rgba(248, 81, 73, 0.4);
+      color: var(--accent-red);
+      box-shadow: 0 0 16px rgba(248, 81, 73, 0.15);
+    }
+
+    .trace-opt.disabled { pointer-events: none; opacity: 0.4; }
+
+    .trace-fb {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      min-height: 1.5em;
+      margin-top: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .trace-fb--correct { color: var(--accent-green); }
+    .trace-fb--wrong { color: var(--accent-red); }
+
+    /* ── Completion section ── */
+    .pf-completion {
+      text-align: center;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 1em;
+      padding: 0;
+      margin-top: 1.5rem;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      box-shadow: var(--shadow-inset);
+      transition: opacity 1s var(--ease-smooth), max-height 1s ease;
+    }
+
+    .pf-completion.visible {
+      opacity: 1;
+      max-height: 400px;
+      padding: 2rem 1.5rem;
+    }
+
+    .pf-completion-line {
+      font-family: var(--font-sans);
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 0.25rem;
+    }
+
+    .pf-completion-line.hl {
+      color: var(--accent-green);
+      font-style: italic;
+    }
+
+    .pf-completion-divider {
+      width: 40px;
+      height: 1px;
+      background: var(--border-subtle);
+      margin: 1rem auto;
+    }
+
+    .pf-completion-link {
+      display: inline-block;
+      margin-top: 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      padding: 0.6rem 1.5rem;
+      border-radius: 0.5em;
+      transition: all 0.3s var(--ease-spring);
+    }
+
+    .pf-completion-link:hover {
+      border-color: var(--text-secondary);
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.04);
+    }
+  </style>
+</head>
+<body>
+  <div class="mobile-gate">
+    <svg class="mobile-gate-anim" viewBox="0 0 180 140">
+      <path class="mg-edge" d="M 50,30 Q 70,25 90,45" />
+      <path class="mg-edge" d="M 50,30 Q 75,55 90,75" />
+      <path class="mg-edge" d="M 90,45 Q 90,60 90,75" />
+      <path class="mg-edge" d="M 90,75 Q 70,95 55,110" />
+      <path class="mg-edge" d="M 90,75 Q 110,95 125,110" />
+      <path class="mg-edge" d="M 55,110 Q 105,100 140,75" />
+      <path class="mg-edge" d="M 125,110 Q 135,95 140,75" />
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="3s" repeatCount="indefinite" begin="0s"><mpath href="#mgp1"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3s" repeatCount="indefinite" begin="0s"/></circle>
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="3.5s" repeatCount="indefinite" begin="1.2s"><mpath href="#mgp2"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3.5s" repeatCount="indefinite" begin="1.2s"/></circle>
+      <circle class="mg-particle--orange" r="1.5" opacity="0"><animateMotion dur="2.8s" repeatCount="indefinite" begin="0.5s"><mpath href="#mgp3"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="2.8s" repeatCount="indefinite" begin="0.5s"/></circle>
+      <circle class="mg-particle--purple" r="1.5" opacity="0"><animateMotion dur="3.2s" repeatCount="indefinite" begin="1.8s"><mpath href="#mgp4"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3.2s" repeatCount="indefinite" begin="1.8s"/></circle>
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0.8s"><mpath href="#mgp5"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="2.6s" repeatCount="indefinite" begin="0.8s"/></circle>
+      <defs>
+        <path id="mgp1" d="M 50,30 Q 70,25 90,45" />
+        <path id="mgp2" d="M 50,30 Q 75,55 90,75" />
+        <path id="mgp3" d="M 90,75 Q 70,95 55,110" />
+        <path id="mgp4" d="M 55,110 Q 105,100 140,75" />
+        <path id="mgp5" d="M 125,110 Q 135,95 140,75" />
+      </defs>
+      <circle class="mg-node" cx="50" cy="30" r="12" />
+      <text class="mg-label" x="50" y="33">gw</text>
+      <circle class="mg-node" cx="90" cy="45" r="10" />
+      <text class="mg-label" x="90" y="48">auth</text>
+      <circle class="mg-node" cx="90" cy="75" r="13" />
+      <text class="mg-label" x="90" y="78">api</text>
+      <circle class="mg-node" cx="55" cy="110" r="10" />
+      <text class="mg-label" x="55" y="113">ord</text>
+      <circle class="mg-node" cx="125" cy="110" r="10" />
+      <text class="mg-label" x="125" y="113">inv</text>
+      <circle class="mg-node" cx="140" cy="75" r="11" />
+      <text class="mg-label" x="140" y="78">db</text>
+    </svg>
+    <div class="mobile-gate-text" data-i18n-html="common.desktopOnlyText">Some paths require a wider view.<br>Return on a larger screen.</div>
+  </div>
+
+  <div class="koan-page">
+
+    <h1 class="koan-title" data-i18n="koan28.title">The Deepest Layer</h1>
+
+    <div class="koan-text" data-i18n-html="koan28.zen">
+      The trace showed you the slow span. But what was the CPU doing during those 800 milliseconds?<br>
+      That answer lives one layer deeper.
+    </div>
+
+    <!-- ══ Trace waterfall — shows WHERE it's slow ══ -->
+    <div class="pf-waterfall" id="waterfall">
+      <div class="pf-panel-header">
+        <span data-i18n="koan28.waterfallHeader">trace waterfall</span>
+        <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent-green);">trace_id: 7a3f9b2e</span>
+      </div>
+      <div class="pf-waterfall-body">
+        <div class="pf-span-row" id="span1">
+          <div class="pf-span-name">gateway</div>
+          <div class="pf-span-bar-wrap">
+            <div class="pf-span-bar ok" style="width: 100%;"></div>
+          </div>
+          <div class="pf-span-dur">820ms</div>
+        </div>
+        <div class="pf-span-row" id="span2">
+          <div class="pf-span-name" style="padding-left: 0.5rem;">api-svc</div>
+          <div class="pf-span-bar-wrap">
+            <div class="pf-span-bar ok" style="width: 98%; left: 1%;"></div>
+          </div>
+          <div class="pf-span-dur">810ms</div>
+        </div>
+        <div class="pf-span-row" id="span3">
+          <div class="pf-span-name" style="padding-left: 1rem;" data-i18n="koan28.spanDb">db query</div>
+          <div class="pf-span-bar-wrap">
+            <div class="pf-span-bar slow" id="slowBar" style="width: 95%; left: 2%;"></div>
+          </div>
+          <div class="pf-span-dur slow-text">800ms</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Narrative 1: the trace tells you WHERE -->
+    <div class="pf-narrative" id="narrative1" data-i18n-html="koan28.narrative1">
+      The trace tells you <strong>WHERE</strong> the time was spent: 800ms in the database query span.<br>
+      But not <strong>WHY</strong>.
+    </div>
+
+    <!-- ══ Q0: Stepping stone — what can't the trace tell you? ══ -->
+    <div class="trace-question" id="q0">
+      <p data-i18n="koan28.q0">The trace shows the database query took 800ms. What can't it tell you?</p>
+      <div class="trace-opts">
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan28.q0FbService" data-i18n="koan28.q0OptA">Which service made the call</button>
+        <button class="trace-opt" data-answer="correct" data-fb-key="koan28.q0FbCode" data-i18n="koan28.q0OptB">What the code was doing inside that 800ms</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan28.q0FbDuration" data-i18n="koan28.q0OptC">How long the query took</button>
+      </div>
+      <div class="trace-fb" id="fb0"></div>
+    </div>
+
+    <!-- Bridge: domain shift from system signals to code-level -->
+    <div class="pf-narrative" id="bridge" data-i18n-html="koan28.bridge">
+      The three golden signals observe the system from the <strong>outside</strong> &mdash; rates, durations, messages. Profiling looks <strong>inward</strong>. It captures the running code itself: which functions executed, where the CPU spent its cycles.<br>
+      This is not another system signal. It is a window into a single moment of execution.
+    </div>
+
+    <!-- ══ Flamegraph — shows WHY it's slow ══ -->
+    <div class="pf-flamegraph" id="flamegraph">
+      <div class="pf-panel-header">
+        <span data-i18n="koan28.flameHeader">profile &mdash; db query span</span>
+        <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent-orange);" data-i18n="koan28.flameBadge">flamegraph</span>
+      </div>
+      <div class="pf-flame-body">
+        <div class="pf-flame-bar depth-0" id="flame0">
+          <span class="pf-flame-label">handleRequest</span>
+          <span class="pf-flame-dur">800ms</span>
+        </div>
+        <div class="pf-flame-bar depth-1" id="flame1">
+          <span class="pf-flame-label">queryDatabase</span>
+          <span class="pf-flame-dur">780ms</span>
+        </div>
+        <div class="pf-flame-bar depth-2" id="flame2">
+          <span class="pf-flame-label">getConnection</span>
+          <span class="pf-flame-dur">720ms</span>
+        </div>
+        <div class="pf-flame-bar depth-3" id="flame3">
+          <span class="pf-flame-label">waitForPool</span>
+          <span class="pf-flame-dur">680ms</span>
+        </div>
+      </div>
+      <div class="pf-flame-annotation" id="flameAnnotation" data-i18n="koan28.flameAnnotation">85% of the span's time: waiting for a connection from the pool</div>
+    </div>
+
+    <!-- Narrative 2: the profile reveals the root cause -->
+    <div class="pf-narrative" id="narrative2" data-i18n-html="koan28.narrative2">
+      The flamegraph reveals the truth: <strong>680ms of 800ms</strong> was spent in <strong>waitForPool</strong>.<br>
+      The query itself was fast. The bottleneck was connection pool contention.
+    </div>
+
+    <!-- ══ Q1: What does profiling reveal? ══ -->
+    <div class="trace-question" id="q1">
+      <p data-i18n="koan28.q1">A span took 800ms. The trace shows it was a database call. What does profiling reveal?</p>
+      <div class="trace-opts">
+        <button class="trace-opt" data-answer="correct" data-fb-key="koan28.q1FbCpu" data-i18n="koan28.q1OptA">What the CPU was doing during that span</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan28.q1FbCount" data-i18n="koan28.q1OptB">How many times the span was called</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan28.q1FbCaller" data-i18n="koan28.q1OptC">Which service called it</button>
+      </div>
+      <div class="trace-fb" id="fb1"></div>
+    </div>
+
+    <!-- ══ Q2: What makes OTel profiling different? ══ -->
+    <div class="trace-question" id="q2">
+      <p data-i18n="koan28.q2">What makes OTel's profiling different from traditional profilers?</p>
+      <div class="trace-opts">
+        <button class="trace-opt" data-answer="correct" data-fb-key="koan28.q2FbLinked" data-i18n="koan28.q2OptA">Profiles are linked to traces via span context</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan28.q2FbFaster" data-i18n="koan28.q2OptB">It's faster than other profilers</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan28.q2FbReplace" data-i18n="koan28.q2OptC">It replaces all other signals</button>
+      </div>
+      <div class="trace-fb" id="fb2"></div>
+    </div>
+
+    <!-- ══ Insight ══ -->
+    <div class="pf-insight" id="insight">
+      <p data-i18n="koan28.insightLine1">Metrics tell you THAT. Traces tell you WHERE. Logs tell you WHAT. Profiling tells you WHY &mdash; by looking inside the code itself.</p>
+      <p data-i18n="koan28.insightLine2">Profiling is OpenTelemetry&rsquo;s newest signal, still experimental. Unlike traditional profilers, it connects each profile to a specific trace and span &mdash; slow span to flamegraph, in one click.</p>
+      <p data-i18n="koan28.insightLine3">You began with silence. Now you can see &mdash; from the broadest metric to the deepest stack frame.</p>
+    </div>
+
+    <!-- ══ Completion ══ -->
+    <div class="pf-completion" id="completion">
+      <div class="pf-completion-line" data-i18n="koan28.completionLine1">You have completed all 28 koans.</div>
+      <div class="pf-completion-line" data-i18n="koan28.completionLine2">From a silent system to the deepest layer of observability.</div>
+      <div class="pf-completion-divider"></div>
+      <div class="pf-completion-line hl" data-i18n="koan28.completionLine3">You began with silence.</div>
+      <div class="pf-completion-line hl" data-i18n="koan28.completionLine4">Now you can see.</div>
+      <div class="pf-completion-divider"></div>
+      <a class="pf-completion-link" href="../index.html" data-i18n="koan28.returnLink">&larr; Return to the beginning</a>
+    </div>
+  </div>
+
+  <div class="koan-progress">
+    <div class="koan-progress-fill" style="width: 100%"></div>
+  </div>
+
+  <script>
+    (function () {
+      function run() {
+        var waterfall = document.getElementById('waterfall');
+        var narrative1 = document.getElementById('narrative1');
+        var q0 = document.getElementById('q0');
+        var bridge = document.getElementById('bridge');
+        var flamegraph = document.getElementById('flamegraph');
+        var narrative2 = document.getElementById('narrative2');
+        var q1 = document.getElementById('q1');
+        var q2 = document.getElementById('q2');
+        var insight = document.getElementById('insight');
+        var completion = document.getElementById('completion');
+
+        /* ── Shared question handler ── */
+        function setupQuestion(qEl, fbEl, onCorrect) {
+          var opts = qEl.querySelectorAll('.trace-opt');
+
+          opts.forEach(function (opt) {
+            opt.addEventListener('click', function () {
+              var fbKey = this.dataset.fbKey;
+              var feedbackText = fbKey ? i18n.t(fbKey) : '';
+
+              if (this.dataset.answer === 'correct') {
+                this.classList.add('correct');
+                opts.forEach(function (o) { o.classList.add('disabled'); });
+                fbEl.textContent = feedbackText;
+                fbEl.className = 'trace-fb trace-fb--correct';
+                if (onCorrect) {
+                  setTimeout(onCorrect, 800);
+                }
+              } else {
+                this.classList.add('wrong');
+                fbEl.textContent = feedbackText;
+                fbEl.className = 'trace-fb trace-fb--wrong';
+                var self = this;
+                setTimeout(function () { self.classList.remove('wrong'); }, 600);
+              }
+            });
+          });
+        }
+
+        /* ── Phase 1: Reveal trace waterfall ── */
+        setTimeout(function () {
+          waterfall.classList.add('visible');
+
+          var spans = [
+            document.getElementById('span1'),
+            document.getElementById('span2'),
+            document.getElementById('span3')
+          ];
+
+          spans.forEach(function (span, i) {
+            setTimeout(function () {
+              span.classList.add('visible');
+              if (i === 2) {
+                setTimeout(function () {
+                  document.getElementById('slowBar').classList.add('pulse');
+                }, 300);
+              }
+            }, 300 + i * 400);
+          });
+        }, 600);
+
+        /* ── Phase 2: Narrative — WHERE but not WHY ── */
+        setTimeout(function () {
+          narrative1.classList.add('visible');
+        }, 2600);
+
+        /* ── Phase 3: Q0 stepping stone ── */
+        setTimeout(function () {
+          q0.classList.add('visible');
+        }, 3800);
+
+        /* Q0: What can't the trace tell you? → bridge → flamegraph → narrative2 → Q1 */
+        setupQuestion(q0, document.getElementById('fb0'), function () {
+          bridge.classList.add('visible');
+
+          setTimeout(function () {
+            flamegraph.classList.add('visible');
+
+            var flames = [
+              document.getElementById('flame0'),
+              document.getElementById('flame1'),
+              document.getElementById('flame2'),
+              document.getElementById('flame3')
+            ];
+
+            flames.forEach(function (flame, i) {
+              setTimeout(function () {
+                flame.classList.add('visible');
+              }, 400 + i * 450);
+            });
+
+            setTimeout(function () {
+              document.getElementById('flameAnnotation').classList.add('visible');
+            }, 2400);
+
+            setTimeout(function () {
+              narrative2.classList.add('visible');
+            }, 3200);
+
+            setTimeout(function () {
+              q1.classList.add('visible');
+            }, 4200);
+          }, 1200);
+        });
+
+        /* Q1: What does profiling reveal? → Q2 */
+        setupQuestion(q1, document.getElementById('fb1'), function () {
+          q2.classList.add('visible');
+        });
+
+        /* Q2: What makes OTel profiling different? → insight → completion */
+        setupQuestion(q2, document.getElementById('fb2'), function () {
+          setTimeout(function () {
+            insight.classList.add('visible');
+          }, 800);
+
+          setTimeout(function () {
+            completion.classList.add('visible');
+          }, 2200);
+        });
+      }
+
+      if (window.i18n && window.i18n.t('common.desktopOnly') !== 'common.desktopOnly') { run(); }
+      else { window.addEventListener('i18n:ready', run, { once: true }); }
+    })();
+  </script>
+  <script src="../js/scroll.js"></script>
+  <script src="../js/music.js"></script>
+  <script src="../js/progress.js"></script>
+</body>
+</html>

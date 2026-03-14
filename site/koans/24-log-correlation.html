@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="koan24.pageTitle">Koan 24: Weaving the Signals - OpenTelemetry Koans</title>
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../img/apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <meta name="theme-color" content="#0a0e14">
+  <link rel="stylesheet" href="../css/shared.css">
+  <script src="../js/i18n.js"></script>
+  <style>
+    /* ── Log panel ── */
+    .lc-log-panel {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 1em;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-inset);
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+    }
+
+    .lc-log-panel.visible { opacity: 1; }
+
+    .lc-panel-header {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .lc-panel-body {
+      padding: 1rem 1.25rem;
+    }
+
+    /* ── Log lines ── */
+    .lc-log-line {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      line-height: 1.9;
+      color: var(--text-secondary);
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.3em;
+      opacity: 0;
+      transition: opacity 0.4s var(--ease-smooth);
+      white-space: nowrap;
+      overflow-x: auto;
+    }
+
+    .lc-log-line.visible { opacity: 1; }
+
+    .lc-log-line + .lc-log-line {
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .lc-ts { color: var(--text-muted); }
+    .lc-svc { color: var(--accent-blue); }
+    .lc-sev-info { color: var(--accent-green); }
+    .lc-sev-error { color: var(--accent-red); }
+    .lc-msg { color: var(--text-primary); }
+    .lc-tid { color: var(--accent-green); }
+    .lc-sid { color: var(--accent-orange); }
+    .lc-field-label { color: var(--text-muted); }
+
+    /* ── Narrative text ── */
+    .lc-narrative {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      text-align: center;
+      margin: 1rem 0;
+      line-height: 1.7;
+      opacity: 0;
+      transition: opacity 0.6s var(--ease-smooth);
+    }
+
+    .lc-narrative.visible { opacity: 1; }
+
+    .lc-narrative strong {
+      color: var(--text-primary);
+    }
+
+    /* ── Match exercise ── */
+    .lc-match-area {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 1em;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      box-shadow: var(--shadow-inset);
+      transition: opacity 0.6s var(--ease-smooth), max-height 0.8s ease;
+    }
+
+    .lc-match-area.visible {
+      opacity: 1;
+      max-height: 600px;
+    }
+
+    .lc-match-title {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      text-align: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .lc-match-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 0.6rem 1.25rem;
+      align-items: center;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .lc-match-log {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5em;
+      background: var(--bg-glass);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s var(--ease-spring);
+      user-select: none;
+    }
+
+    .lc-match-log:hover {
+      border-color: var(--accent-blue);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .lc-match-log.selected {
+      border-color: var(--accent-blue);
+      background: rgba(88, 166, 255, 0.08);
+      color: var(--accent-blue);
+      box-shadow: 0 0 12px rgba(88, 166, 255, 0.15);
+    }
+
+    .lc-match-log.matched {
+      border-color: rgba(63, 185, 80, 0.4);
+      background: rgba(63, 185, 80, 0.08);
+      color: var(--accent-green);
+      box-shadow: 0 0 12px rgba(63, 185, 80, 0.15);
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .lc-match-log.wrong-flash {
+      border-color: rgba(248, 81, 73, 0.5);
+      color: var(--accent-red);
+      box-shadow: 0 0 12px rgba(248, 81, 73, 0.15);
+    }
+
+    .lc-match-connector {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .lc-match-trace {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5em;
+      background: var(--bg-glass);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s var(--ease-spring);
+      user-select: none;
+    }
+
+    .lc-match-trace:hover {
+      border-color: var(--accent-blue);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .lc-match-trace.selected {
+      border-color: var(--accent-blue);
+      background: rgba(88, 166, 255, 0.08);
+      color: var(--accent-blue);
+      box-shadow: 0 0 12px rgba(88, 166, 255, 0.15);
+    }
+
+    .lc-match-trace.matched {
+      border-color: rgba(63, 185, 80, 0.4);
+      background: rgba(63, 185, 80, 0.08);
+      color: var(--accent-green);
+      box-shadow: 0 0 12px rgba(63, 185, 80, 0.15);
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .lc-match-trace.wrong-flash {
+      border-color: rgba(248, 81, 73, 0.5);
+      color: var(--accent-red);
+      box-shadow: 0 0 12px rgba(248, 81, 73, 0.15);
+    }
+
+    .lc-match-status {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      text-align: center;
+      margin-top: 0.75rem;
+      min-height: 1.5em;
+    }
+
+    .lc-match-status--correct { color: var(--accent-green); }
+    .lc-match-status--wrong { color: var(--accent-red); }
+
+    /* ── Question panel ── */
+    .trace-question {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 1em;
+      padding: 1.25rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      box-shadow: var(--shadow-inset);
+      transition: opacity 0.6s var(--ease-smooth), max-height 0.6s, padding 0.6s;
+    }
+
+    .trace-question.visible {
+      opacity: 1;
+      max-height: 20rem;
+      padding: 1.25rem;
+    }
+
+    .trace-question p {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+    }
+
+    .trace-opts {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .trace-opt {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      padding: 0.6rem 1.35rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5em;
+      background: var(--bg-glass);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.3s var(--ease-spring);
+      max-width: 380px;
+      text-align: left;
+    }
+
+    .trace-opt:hover {
+      border-color: var(--accent-blue);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .trace-opt.correct {
+      border-color: rgba(63, 185, 80, 0.4);
+      background: rgba(63, 185, 80, 0.08);
+      color: var(--accent-green);
+      box-shadow: 0 0 16px rgba(63, 185, 80, 0.15);
+    }
+
+    .trace-opt.wrong {
+      border-color: rgba(248, 81, 73, 0.4);
+      color: var(--accent-red);
+      box-shadow: 0 0 16px rgba(248, 81, 73, 0.15);
+    }
+
+    .trace-opt.disabled { pointer-events: none; opacity: 0.4; }
+
+    .trace-fb {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      min-height: 1.5em;
+      margin-top: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .trace-fb--correct { color: var(--accent-green); }
+    .trace-fb--wrong { color: var(--accent-red); }
+  </style>
+</head>
+<body>
+  <div class="mobile-gate">
+    <svg class="mobile-gate-anim" viewBox="0 0 180 140">
+      <path class="mg-edge" d="M 50,30 Q 70,25 90,45" />
+      <path class="mg-edge" d="M 50,30 Q 75,55 90,75" />
+      <path class="mg-edge" d="M 90,45 Q 90,60 90,75" />
+      <path class="mg-edge" d="M 90,75 Q 70,95 55,110" />
+      <path class="mg-edge" d="M 90,75 Q 110,95 125,110" />
+      <path class="mg-edge" d="M 55,110 Q 105,100 140,75" />
+      <path class="mg-edge" d="M 125,110 Q 135,95 140,75" />
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="3s" repeatCount="indefinite" begin="0s"><mpath href="#mgp1"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3s" repeatCount="indefinite" begin="0s"/></circle>
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="3.5s" repeatCount="indefinite" begin="1.2s"><mpath href="#mgp2"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3.5s" repeatCount="indefinite" begin="1.2s"/></circle>
+      <circle class="mg-particle--orange" r="1.5" opacity="0"><animateMotion dur="2.8s" repeatCount="indefinite" begin="0.5s"><mpath href="#mgp3"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="2.8s" repeatCount="indefinite" begin="0.5s"/></circle>
+      <circle class="mg-particle--purple" r="1.5" opacity="0"><animateMotion dur="3.2s" repeatCount="indefinite" begin="1.8s"><mpath href="#mgp4"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="3.2s" repeatCount="indefinite" begin="1.8s"/></circle>
+      <circle class="mg-particle--green" r="1.5" opacity="0"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0.8s"><mpath href="#mgp5"/></animateMotion><animate attributeName="opacity" values="0;0.7;0.7;0" keyTimes="0;0.1;0.9;1" dur="2.6s" repeatCount="indefinite" begin="0.8s"/></circle>
+      <defs>
+        <path id="mgp1" d="M 50,30 Q 70,25 90,45" />
+        <path id="mgp2" d="M 50,30 Q 75,55 90,75" />
+        <path id="mgp3" d="M 90,75 Q 70,95 55,110" />
+        <path id="mgp4" d="M 55,110 Q 105,100 140,75" />
+        <path id="mgp5" d="M 125,110 Q 135,95 140,75" />
+      </defs>
+      <circle class="mg-node" cx="50" cy="30" r="12" />
+      <text class="mg-label" x="50" y="33">gw</text>
+      <circle class="mg-node" cx="90" cy="45" r="10" />
+      <text class="mg-label" x="90" y="48">auth</text>
+      <circle class="mg-node" cx="90" cy="75" r="13" />
+      <text class="mg-label" x="90" y="78">api</text>
+      <circle class="mg-node" cx="55" cy="110" r="10" />
+      <text class="mg-label" x="55" y="113">ord</text>
+      <circle class="mg-node" cx="125" cy="110" r="10" />
+      <text class="mg-label" x="125" y="113">inv</text>
+      <circle class="mg-node" cx="140" cy="75" r="11" />
+      <text class="mg-label" x="140" y="78">db</text>
+    </svg>
+    <div class="mobile-gate-text" data-i18n-html="common.desktopOnlyText">Some paths require a wider view.<br>Return on a larger screen.</div>
+  </div>
+
+  <div class="koan-page">
+
+    <h1 class="koan-title" data-i18n="koan24.title">Weaving the Signals</h1>
+
+    <div class="koan-text" data-i18n-html="koan24.zen">
+      A log without context is a voice in a crowd.<br>
+      A log with a trace ID is a voice you can follow.
+    </div>
+
+    <!-- ══ Before: logs without trace context ══ -->
+    <div class="lc-log-panel" id="panelBefore">
+      <div class="lc-panel-header">
+        <span data-i18n="koan24.beforeHeader">logs &mdash; before correlation</span>
+        <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-red);" data-i18n="koan24.beforeBadge">no trace context</span>
+      </div>
+      <div class="lc-panel-body">
+        <div class="lc-log-line" id="logB1">
+          <span class="lc-ts">10:42:01.233</span>&nbsp;
+          <span class="lc-svc">[order-svc]</span>&nbsp;
+          <span class="lc-sev-info">INFO</span>&nbsp;
+          <span class="lc-msg" data-i18n="koan24.logB1Msg">Order created: #9281</span>
+        </div>
+        <div class="lc-log-line" id="logB2">
+          <span class="lc-ts">10:42:01.471</span>&nbsp;
+          <span class="lc-svc">[inventory-svc]</span>&nbsp;
+          <span class="lc-sev-error">ERROR</span>&nbsp;
+          <span class="lc-msg" data-i18n="koan24.logB2Msg">Stock check failed: item SKU-440</span>
+        </div>
+        <div class="lc-log-line" id="logB3">
+          <span class="lc-ts">10:42:01.892</span>&nbsp;
+          <span class="lc-svc">[order-svc]</span>&nbsp;
+          <span class="lc-sev-error">ERROR</span>&nbsp;
+          <span class="lc-msg" data-i18n="koan24.logB3Msg">Order #9281 failed: inventory unavailable</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Narrative 1 -->
+    <div class="lc-narrative" id="narrative1" data-i18n-html="koan24.narrative1">
+      You see the error. But <strong>which request</strong> caused it? <strong>Which trace?</strong> There is no thread connecting the log to the request that produced it.
+    </div>
+
+    <!-- ══ After: logs with trace context injected ══ -->
+    <div class="lc-log-panel" id="panelAfter">
+      <div class="lc-panel-header">
+        <span data-i18n="koan24.afterHeader">logs &mdash; after correlation</span>
+        <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-green);" data-i18n="koan24.afterBadge">trace context injected</span>
+      </div>
+      <div class="lc-panel-body">
+        <div class="lc-log-line" id="logA1">
+          <span class="lc-ts">10:42:01.233</span>&nbsp;
+          <span class="lc-svc">[order-svc]</span>&nbsp;
+          <span class="lc-sev-info">INFO</span>&nbsp;
+          <span class="lc-msg" data-i18n="koan24.logA1Msg">Order created: #9281</span>&nbsp;
+          <span class="lc-field-label">trace_id=</span><span class="lc-tid">a1b2c3d4e5f6</span>&nbsp;
+          <span class="lc-field-label">span_id=</span><span class="lc-sid">00f067aa</span>
+        </div>
+        <div class="lc-log-line" id="logA2">
+          <span class="lc-ts">10:42:01.471</span>&nbsp;
+          <span class="lc-svc">[inventory-svc]</span>&nbsp;
+          <span class="lc-sev-error">ERROR</span>&nbsp;
+          <span class="lc-msg" data-i18n="koan24.logA2Msg">Stock check failed: item SKU-440</span>&nbsp;
+          <span class="lc-field-label">trace_id=</span><span class="lc-tid">a1b2c3d4e5f6</span>&nbsp;
+          <span class="lc-field-label">span_id=</span><span class="lc-sid">bb902b71</span>
+        </div>
+        <div class="lc-log-line" id="logA3">
+          <span class="lc-ts">10:42:01.892</span>&nbsp;
+          <span class="lc-svc">[order-svc]</span>&nbsp;
+          <span class="lc-sev-error">ERROR</span>&nbsp;
+          <span class="lc-msg" data-i18n="koan24.logA3Msg">Order #9281 failed: inventory unavailable</span>&nbsp;
+          <span class="lc-field-label">trace_id=</span><span class="lc-tid">f7e8d9c0b1a2</span>&nbsp;
+          <span class="lc-field-label">span_id=</span><span class="lc-sid">cc1d3e4f</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Narrative 2 -->
+    <div class="lc-narrative" id="narrative2" data-i18n-html="koan24.narrative2">
+      Now each log carries a <strong>trace_id</strong> and <strong>span_id</strong>. The first two logs share trace <span style="color: var(--accent-green); font-family: var(--font-mono); font-size: 0.85rem;">a1b2c3d4e5f6</span> &mdash; they belong to the same request. You can jump from the error log straight to its trace.
+    </div>
+
+    <!-- ══ Matching exercise: connect logs to traces ══ -->
+    <div class="lc-match-area" id="matchArea">
+      <div class="lc-match-title" data-i18n="koan24.matchTitle">Match each log entry to the trace it belongs to</div>
+
+      <div class="lc-match-grid" id="matchGrid">
+        <!-- Row 1 -->
+        <div class="lc-match-log" data-log="trace-a" data-i18n="koan24.matchLog1">Order created #9281</div>
+        <div class="lc-match-connector">&rarr;</div>
+        <div class="lc-match-trace" data-trace="trace-b" data-i18n="koan24.matchTrace1">trace f7e8d9c0b1a2</div>
+
+        <!-- Row 2 -->
+        <div class="lc-match-log" data-log="trace-a" data-i18n="koan24.matchLog2">Stock check failed SKU-440</div>
+        <div class="lc-match-connector">&rarr;</div>
+        <div class="lc-match-trace" data-trace="trace-a" data-i18n="koan24.matchTrace2">trace a1b2c3d4e5f6</div>
+
+        <!-- Row 3 -->
+        <div class="lc-match-log" data-log="trace-b" data-i18n="koan24.matchLog3">Order #9281 failed</div>
+        <div class="lc-match-connector">&rarr;</div>
+        <div class="lc-match-trace" data-trace="trace-a" data-i18n="koan24.matchTrace3">trace a1b2c3d4e5f6</div>
+      </div>
+
+      <div class="lc-match-status" id="matchStatus"></div>
+    </div>
+
+    <!-- ══ Q1: How does trace_id appear in a log? ══ -->
+    <div class="trace-question" id="q1">
+      <p data-i18n="koan24.q1">How does a trace_id appear in a log record?</p>
+      <div class="trace-opts">
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan24.q1FbManual" data-i18n="koan24.q1OptA">The developer adds it manually to every log call</button>
+        <button class="trace-opt" data-answer="correct" data-fb-key="koan24.q1FbAppender" data-i18n="koan24.q1OptB">An OTel log appender injects it automatically</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan24.q1FbCollector" data-i18n="koan24.q1OptC">The collector adds it after the fact</button>
+      </div>
+      <div class="trace-fb" id="fb1"></div>
+    </div>
+
+    <!-- ══ Q2: What does log-trace correlation let you do? ══ -->
+    <div class="trace-question" id="q2">
+      <p data-i18n="koan24.q2">What does log-trace correlation let you do?</p>
+      <div class="trace-opts">
+        <button class="trace-opt" data-answer="correct" data-fb-key="koan24.q2FbJump" data-i18n="koan24.q2OptA">Jump from a log entry directly to its trace</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan24.q2FbReplace" data-i18n="koan24.q2OptB">Replace traces with logs</button>
+        <button class="trace-opt" data-answer="wrong" data-fb-key="koan24.q2FbSpeed" data-i18n="koan24.q2OptC">Send logs faster</button>
+      </div>
+      <div class="trace-fb" id="fb2"></div>
+    </div>
+
+    <!-- ══ Insight ══ -->
+    <div class="lc-insight" id="insight">
+      <p data-i18n="koan24.insightLine1">An OTel log appender weaves trace context into every log record automatically.</p>
+      <p data-i18n="koan24.insightLine2">One field &mdash; trace_id &mdash; turns isolated log lines into a thread you can follow back to the full request.</p>
+      <a href="25-exemplars.html" data-i18n="common.continue">Continue &rarr;</a>
+    </div>
+  </div>
+
+  <div class="koan-progress">
+    <div class="koan-progress-fill" style="width: 86%"></div>
+  </div>
+
+  <script>
+    (function () {
+      function run() {
+        var panelBefore = document.getElementById('panelBefore');
+        var panelAfter = document.getElementById('panelAfter');
+        var narrative1 = document.getElementById('narrative1');
+        var narrative2 = document.getElementById('narrative2');
+        var matchArea = document.getElementById('matchArea');
+        var q1 = document.getElementById('q1');
+        var q2 = document.getElementById('q2');
+
+        /* ── Phase 1: Reveal "before" logs ── */
+        setTimeout(function () {
+          panelBefore.classList.add('visible');
+          var beforeLogs = [
+            document.getElementById('logB1'),
+            document.getElementById('logB2'),
+            document.getElementById('logB3')
+          ];
+          beforeLogs.forEach(function (log, i) {
+            setTimeout(function () {
+              log.classList.add('visible');
+            }, 300 + i * 400);
+          });
+        }, 600);
+
+        /* ── Phase 2: Narrative 1 ── */
+        setTimeout(function () {
+          narrative1.classList.add('visible');
+        }, 2600);
+
+        /* ── Phase 3: Reveal "after" logs ── */
+        setTimeout(function () {
+          panelAfter.classList.add('visible');
+          var afterLogs = [
+            document.getElementById('logA1'),
+            document.getElementById('logA2'),
+            document.getElementById('logA3')
+          ];
+          afterLogs.forEach(function (log, i) {
+            setTimeout(function () {
+              log.classList.add('visible');
+            }, 300 + i * 400);
+          });
+        }, 3600);
+
+        /* ── Phase 4: Narrative 2, then match exercise ── */
+        setTimeout(function () {
+          narrative2.classList.add('visible');
+        }, 5400);
+
+        setTimeout(function () {
+          matchArea.classList.add('visible');
+        }, 6200);
+
+        /* ── Matching exercise logic ── */
+        var logs = document.querySelectorAll('.lc-match-log');
+        var traces = document.querySelectorAll('.lc-match-trace');
+        var matchStatus = document.getElementById('matchStatus');
+        var selectedLog = null;
+        var selectedTrace = null;
+        var matchedCount = 0;
+        var totalPairs = 3;
+
+        logs.forEach(function (log) {
+          log.addEventListener('click', function () {
+            if (this.classList.contains('matched')) return;
+
+            if (selectedLog === this) {
+              this.classList.remove('selected');
+              selectedLog = null;
+              return;
+            }
+
+            logs.forEach(function (l) { l.classList.remove('selected'); });
+            this.classList.add('selected');
+            selectedLog = this;
+
+            tryMatch();
+          });
+        });
+
+        traces.forEach(function (trace) {
+          trace.addEventListener('click', function () {
+            if (this.classList.contains('matched')) return;
+
+            if (selectedTrace === this) {
+              this.classList.remove('selected');
+              selectedTrace = null;
+              return;
+            }
+
+            traces.forEach(function (t) { t.classList.remove('selected'); });
+            this.classList.add('selected');
+            selectedTrace = this;
+
+            tryMatch();
+          });
+        });
+
+        function tryMatch() {
+          if (!selectedLog || !selectedTrace) return;
+
+          var logTraceId = selectedLog.dataset.log;
+          var traceTraceId = selectedTrace.dataset.trace;
+
+          if (logTraceId === traceTraceId) {
+            selectedLog.classList.remove('selected');
+            selectedTrace.classList.remove('selected');
+            selectedLog.classList.add('matched');
+            selectedTrace.classList.add('matched');
+            matchedCount++;
+
+            matchStatus.textContent = i18n.t('koan24.matchCorrect');
+            matchStatus.className = 'lc-match-status lc-match-status--correct';
+
+            selectedLog = null;
+            selectedTrace = null;
+
+            if (matchedCount === totalPairs) {
+              matchStatus.textContent = i18n.t('koan24.matchComplete');
+              matchStatus.className = 'lc-match-status lc-match-status--correct';
+
+              setTimeout(function () {
+                q1.classList.add('visible');
+              }, 800);
+            }
+          } else {
+            var badLog = selectedLog;
+            var badTrace = selectedTrace;
+            badLog.classList.remove('selected');
+            badTrace.classList.remove('selected');
+            badLog.classList.add('wrong-flash');
+            badTrace.classList.add('wrong-flash');
+
+            matchStatus.textContent = i18n.t('koan24.matchWrong');
+            matchStatus.className = 'lc-match-status lc-match-status--wrong';
+
+            selectedLog = null;
+            selectedTrace = null;
+
+            setTimeout(function () {
+              badLog.classList.remove('wrong-flash');
+              badTrace.classList.remove('wrong-flash');
+            }, 600);
+          }
+        }
+
+        /* ── Q1 logic ── */
+        var fb1 = document.getElementById('fb1');
+        var q1Opts = q1.querySelectorAll('.trace-opt');
+
+        q1Opts.forEach(function (opt) {
+          opt.addEventListener('click', function () {
+            var fbKey = this.dataset.fbKey;
+            var feedbackText = fbKey ? i18n.t(fbKey) : '';
+
+            if (this.dataset.answer === 'correct') {
+              this.classList.add('correct');
+              q1Opts.forEach(function (o) { o.classList.add('disabled'); });
+              fb1.textContent = feedbackText;
+              fb1.className = 'trace-fb trace-fb--correct';
+
+              setTimeout(function () {
+                q2.classList.add('visible');
+              }, 800);
+            } else {
+              this.classList.add('wrong');
+              fb1.textContent = feedbackText;
+              fb1.className = 'trace-fb trace-fb--wrong';
+              var self = this;
+              setTimeout(function () { self.classList.remove('wrong'); }, 600);
+            }
+          });
+        });
+
+        /* ── Q2 logic ── */
+        var fb2 = document.getElementById('fb2');
+        var q2Opts = q2.querySelectorAll('.trace-opt');
+
+        q2Opts.forEach(function (opt) {
+          opt.addEventListener('click', function () {
+            var fbKey = this.dataset.fbKey;
+            var feedbackText = fbKey ? i18n.t(fbKey) : '';
+
+            if (this.dataset.answer === 'correct') {
+              this.classList.add('correct');
+              q2Opts.forEach(function (o) { o.classList.add('disabled'); });
+              fb2.textContent = feedbackText;
+              fb2.className = 'trace-fb trace-fb--correct';
+
+              setTimeout(function () {
+                document.getElementById('insight').classList.add('visible');
+              }, 800);
+            } else {
+              this.classList.add('wrong');
+              fb2.textContent = feedbackText;
+              fb2.className = 'trace-fb trace-fb--wrong';
+              var self = this;
+              setTimeout(function () { self.classList.remove('wrong'); }, 600);
+            }
+          });
+        });
+      }
+
+      if (window.i18n && window.i18n.t('common.desktopOnly') !== 'common.desktopOnly') { run(); }
+      else { window.addEventListener('i18n:ready', run, { once: true }); }
+    })();
+  </script>
+  <script src="../js/scroll.js"></script>
+  <script src="../js/music.js"></script>
+  <script src="../js/progress.js"></script>
+</body>
+</html>

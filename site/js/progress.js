@@ -4,7 +4,10 @@
     'theOpening', 'telemetry', 'threeSignals', 'metric', 'metricTypes',
     'trace', 'spans', 'log', 'attributes', 'naming', 'resources',
     'instrumentation', 'export', 'formats', 'collector', 'pipeline',
-    'sampling', 'serviceMap', 'correlation', 'fullPicture'
+    'sampling', 'serviceMap', 'correlation', 'fullPicture',
+    'spanEvents', 'traceContext', 'baggage', 'spanLinks',
+    'logCorrelation', 'exemplars', 'resourceDetectors',
+    'collectorTransforms', 'profiling'
   ];
   var KOAN_ORDER = [
     { n: 0,  file: 'index.html',              titleKey: 'nav.theOpening',       fallback: 'The Opening' },
@@ -26,7 +29,16 @@
     { n: 16, file: 'koans/16-sampling.html',   titleKey: 'nav.sampling',        fallback: 'Sampling' },
     { n: 17, file: 'koans/17-service-map.html', titleKey: 'nav.serviceMap',     fallback: 'Service Map' },
     { n: 18, file: 'koans/18-correlation.html', titleKey: 'nav.correlation',    fallback: 'Correlation' },
-    { n: 19, file: 'koans/19-full-picture.html', titleKey: 'nav.fullPicture',   fallback: 'Full Picture' }
+    { n: 19, file: 'koans/19-full-picture.html', titleKey: 'nav.fullPicture',   fallback: 'Full Picture' },
+    { n: 20, file: 'koans/20-span-events.html', titleKey: 'nav.spanEvents',    fallback: 'Span Events' },
+    { n: 21, file: 'koans/21-trace-context.html', titleKey: 'nav.traceContext', fallback: 'Trace Context' },
+    { n: 22, file: 'koans/22-baggage.html',    titleKey: 'nav.baggage',         fallback: 'Baggage' },
+    { n: 23, file: 'koans/23-span-links.html', titleKey: 'nav.spanLinks',       fallback: 'Span Links' },
+    { n: 24, file: 'koans/24-log-correlation.html', titleKey: 'nav.logCorrelation', fallback: 'Log Correlation' },
+    { n: 25, file: 'koans/25-exemplars.html',  titleKey: 'nav.exemplars',       fallback: 'Exemplars' },
+    { n: 26, file: 'koans/26-resource-detectors.html', titleKey: 'nav.resourceDetectors', fallback: 'Resource Detectors' },
+    { n: 27, file: 'koans/27-collector-transforms.html', titleKey: 'nav.collectorTransforms', fallback: 'Collector Transforms' },
+    { n: 28, file: 'koans/28-profiling.html',  titleKey: 'nav.profiling',       fallback: 'Profiling' }
   ];
 
   var path = location.pathname;
@@ -69,16 +81,43 @@
     nav.appendChild(prevLink);
   }
 
+  // Dot color groups
+  var DOT_GROUPS = [
+    { start: 0,  end: 2,  color: '#5eead4' },  // Intro (teal)
+    { start: 3,  end: 7,  color: '#4ade80' },  // Signals (green)
+    { start: 8,  end: 10, color: '#60a5fa' },  // Data Model (blue)
+    { start: 11, end: 13, color: '#c084fc' },  // Producing (purple)
+    { start: 14, end: 16, color: '#38bdf8' },  // Managing (sky)
+    { start: 17, end: 19, color: '#34d399' },  // Big Picture (emerald)
+    { start: 20, end: 28, color: '#a78bfa' }   // Extra Credit (violet)
+  ];
+
+  function getGroupColor(idx) {
+    for (var g = 0; g < DOT_GROUPS.length; g++) {
+      if (idx >= DOT_GROUPS[g].start && idx <= DOT_GROUPS[g].end) return DOT_GROUPS[g].color;
+    }
+    return null;
+  }
+
   // Dots
   var dotsWrap = document.createElement('div');
   dotsWrap.className = 'progress-dots';
   var dots = [];
 
   for (var k = 0; k < KOAN_ORDER.length; k++) {
+    // Insert separator between core (19) and extra credit (20)
+    if (k === 20) {
+      var gap = document.createElement('div');
+      gap.className = 'progress-dots-gap';
+      dotsWrap.appendChild(gap);
+    }
     var dot = document.createElement('a');
     dot.href = koanHref(k);
     dot.className = 'progress-dot';
     dot.title = koanTitle(k);
+    var color = getGroupColor(k);
+    if (color) dot.style.setProperty('--dot-color', color);
+    if (k <= currentIdx) dot.classList.add('reached');
     if (k === currentIdx) dot.classList.add('current');
     dots.push(dot);
     dotsWrap.appendChild(dot);
@@ -105,6 +144,52 @@
     nav.appendChild(musicBtn);
   }
 
+  // TOC button
+  var tocDiv = document.createElement('div');
+  tocDiv.className = 'progress-divider';
+  nav.appendChild(tocDiv);
+
+  var tocBtn = document.createElement('button');
+  tocBtn.className = 'toc-toggle';
+  tocBtn.title = t('common.tableOfContents', 'Table of Contents');
+  tocBtn.setAttribute('aria-label', t('common.tableOfContents', 'Table of Contents'));
+  tocBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/></svg>';
+  nav.appendChild(tocBtn);
+
+  var tocDrop = document.createElement('div');
+  tocDrop.className = 'toc-dropdown';
+  tocDrop.hidden = true;
+
+  KOAN_ORDER.forEach(function (koan, idx) {
+    if (idx === 0) return; // skip index page
+    var entry = document.createElement('a');
+    entry.href = koanHref(idx);
+    entry.className = 'toc-entry';
+    if (idx === currentIdx) entry.classList.add('current');
+
+    var num = document.createElement('span');
+    num.className = 'toc-num';
+    num.textContent = koan.n;
+    entry.appendChild(num);
+
+    var info = document.createElement('span');
+    info.className = 'toc-info';
+    var title = document.createElement('span');
+    title.className = 'toc-title';
+    title.textContent = koanTitle(idx);
+    info.appendChild(title);
+    entry.appendChild(info);
+
+    tocDrop.appendChild(entry);
+  });
+
+  tocBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    tocDrop.hidden = !tocDrop.hidden;
+    langDrop.hidden = true;
+  });
+  nav.appendChild(tocDrop);
+
   // Language picker
   var langDiv = document.createElement('div');
   langDiv.className = 'progress-divider';
@@ -121,8 +206,8 @@
   langDrop.className = 'lang-dropdown';
   langDrop.hidden = true;
 
-  var supported = (window.i18n && window.i18n.getSupported) ? window.i18n.getSupported() : [{ code: 'en', name: 'English' }];
-  var currentLang = (window.i18n && window.i18n.getLocale) ? window.i18n.getLocale() : 'en';
+  var supported = (window.i18n && window.i18n.getSupported) ? window.i18n.getSupported() : [{ code: 'en-US', name: 'English (US)' }];
+  var currentLang = (window.i18n && window.i18n.getLocale) ? window.i18n.getLocale() : 'en-US';
 
   supported.forEach(function (loc) {
     var opt = document.createElement('button');
@@ -140,8 +225,9 @@
   langBtn.addEventListener('click', function (e) {
     e.stopPropagation();
     langDrop.hidden = !langDrop.hidden;
+    tocDrop.hidden = true;
   });
-  document.addEventListener('click', function () { langDrop.hidden = true; });
+  document.addEventListener('click', function () { langDrop.hidden = true; tocDrop.hidden = true; });
   nav.appendChild(langDrop);
 
   // GitHub link
@@ -173,6 +259,12 @@
     copy.textContent = t('common.copyright', '\u00A9 2026 Matthew Reider \u00B7 MIT License \u00B7 v0.3.10');
     langBtn.title = t('common.changeLanguage', 'Change language');
     langBtn.setAttribute('aria-label', t('common.changeLanguage', 'Change language'));
+    tocBtn.title = t('common.tableOfContents', 'Table of Contents');
+    tocBtn.setAttribute('aria-label', t('common.tableOfContents', 'Table of Contents'));
+    var tocEntries = tocDrop.querySelectorAll('.toc-title');
+    tocEntries.forEach(function (el, idx) {
+      el.textContent = koanTitle(idx + 1);
+    });
 
     // Update active state in dropdown
     var curLang = window.i18n.getLocale();

@@ -15,40 +15,36 @@
   <style>
     /* Scenario panel */
     .scenario-panel {
-      background: var(--bg-glass);
-      border: 1px solid var(--border-subtle);
-      border-radius: 1em;
-      overflow: hidden;
-      margin-bottom: 1rem;
-      box-shadow: var(--shadow-inset);
+      max-width: 600px;
+      margin: 0 auto 2rem;
+      text-align: center;
     }
 
     .scenario-header {
-      padding: 0.5rem 1rem;
-      border-bottom: 1px solid var(--border-subtle);
-      font-family: var(--font-mono);
+      font-family: var(--font-sans);
       font-size: 0.75rem;
+      font-weight: 500;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
     }
 
     .scenario-body {
-      padding: 1.25rem 1.5rem;
     }
 
     .scenario-alert {
       font-family: var(--font-sans);
-      font-size: 1rem;
-      color: var(--accent-orange);
+      font-size: 1.1rem;
+      color: var(--text-secondary);
       margin-bottom: 0.5rem;
       line-height: 1.6;
     }
 
     .scenario-detail {
       font-family: var(--font-sans);
-      font-size: 0.95rem;
-      color: var(--text-secondary);
+      font-size: 1rem;
+      color: var(--text-muted);
       line-height: 1.6;
     }
 
@@ -440,36 +436,6 @@
       text-transform: uppercase;
     }
 
-    /* Insight */
-    .trace-insight {
-      text-align: center;
-      padding: 1.25rem;
-      background: var(--bg-glass);
-      border: 1px solid var(--border-subtle);
-      border-radius: 1em;
-      opacity: 0;
-      transition: opacity 0.6s;
-      box-shadow: var(--shadow-inset);
-    }
-
-    .trace-insight.visible { opacity: 1; }
-
-    .trace-insight p {
-      font-family: var(--font-sans);
-      font-size: 1rem;
-      color: var(--text-secondary);
-      margin-bottom: 0.35rem;
-      line-height: 1.6;
-    }
-
-    .trace-insight a {
-      font-family: var(--font-mono);
-      font-size: 0.9rem;
-      color: var(--accent-blue);
-      text-decoration: none;
-    }
-
-    .trace-insight a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -515,9 +481,9 @@
     <h1 class="koan-title" data-i18n="koan05.title">What is a Trace?</h1>
 
     <div class="koan-text" data-i18n-html="koan05.zen">
-      The metric said something was slow.<br>
-      The logs said something went wrong.<br>
-      But neither could say where, or in what order.
+      A hundred events pass. A number rises.<br>
+      Somewhere in the system, something waits.<br>
+      But where?
     </div>
 
     <!-- Scenario: the problem -->
@@ -525,7 +491,7 @@
       <div class="scenario-header" data-i18n="koan05.scenarioHeader">incident report</div>
       <div class="scenario-body">
         <div class="scenario-alert" data-i18n="koan05.scenarioAlert">Users report that checkout is slow.</div>
-        <div class="scenario-detail" data-i18n="koan05.scenarioDetail">You have metrics and logs from four services: gateway, api, orders, and database. Can you find the bottleneck?</div>
+        <div class="scenario-detail" data-i18n="koan05.scenarioDetail">Your system has four services: gateway, api, orders, and database. Let's investigate with the monitoring tools you have.</div>
       </div>
     </div>
 
@@ -548,6 +514,20 @@
       </div>
     </div>
 
+    <!-- Q0: What does the metric tell you? -->
+    <div class="trace-question" id="q0">
+      <p data-i18n="koan05.q0">Looking at the metric dashboard: what does it tell you?</p>
+      <div class="trace-opts">
+        <button class="trace-opt" data-answer="wrong" data-fb="wrong-db" data-i18n="koan05.q0OptA">The database is slow</button>
+        <button class="trace-opt" data-answer="correct" data-fb="correct" data-i18n="koan05.q0OptB">Something is slow, but not which service</button>
+        <button class="trace-opt" data-answer="wrong" data-fb="wrong-ok" data-i18n="koan05.q0OptC">Everything looks normal</button>
+      </div>
+      <div class="trace-fb" id="fb0"></div>
+    </div>
+
+    <!-- Bridge: explain what logs are before showing them -->
+    <div class="koan-instruction" id="logBridge" style="opacity: 0; transition: opacity 0.6s;" data-i18n="koan05.logBridge">The metric found a problem but can't point to the cause. Let's check the other tool: logs — messages each service writes as it handles requests.</div>
+
     <!-- Log panel -->
     <div class="log-panel" id="logPanel">
       <div class="log-panel-header" data-i18n="koan05.logHeader">log viewer - last 5 seconds</div>
@@ -563,13 +543,13 @@
       </div>
     </div>
 
-    <!-- Q1: Can you find the bottleneck? -->
+    <!-- Q1: Can you find the bottleneck from the logs? -->
     <div class="trace-question" id="q1">
-      <p data-i18n="koan05.q1">From the metrics and logs alone, can you tell which service is causing the slowness?</p>
+      <p data-i18n="koan05.q1">The logs show what each service did. Can you now pinpoint which service is the bottleneck?</p>
       <div class="trace-opts">
-        <button class="trace-opt" data-answer="wrong" data-fb="wrong-db" data-i18n="koan05.q1OptA">Yes - the database</button>
-        <button class="trace-opt" data-answer="wrong" data-fb="wrong-gw" data-i18n="koan05.q1OptB">Yes - the gateway</button>
-        <button class="trace-opt" data-answer="correct" data-fb="correct" data-i18n="koan05.q1OptC">No - I can&rsquo;t see how the request flowed through the services</button>
+        <button class="trace-opt" data-answer="wrong" data-fb="wrong-db" data-i18n="koan05.q1OptA">Yes &mdash; the database, it appears twice</button>
+        <button class="trace-opt" data-answer="wrong" data-fb="wrong-gw" data-i18n="koan05.q1OptB">Yes &mdash; the gateway, it started and ended the request</button>
+        <button class="trace-opt" data-answer="correct" data-fb="correct" data-i18n="koan05.q1OptC">No &mdash; I see events, but not timing or connections</button>
       </div>
       <div class="trace-fb" id="fb1"></div>
     </div>
@@ -654,14 +634,15 @@
   </div>
 
   <div class="koan-progress">
-    <div class="koan-progress-fill" style="width: 26%"></div>
+    <div class="koan-progress-fill" style="width: 18%"></div>
   </div>
 
   <script>
     (function () {
       function run() {
-        // Phase 1: Reveal metric and log panels with staggered entrance
         var metricPanel = document.getElementById('metricPanel');
+        var q0 = document.getElementById('q0');
+        var logBridge = document.getElementById('logBridge');
         var logPanel = document.getElementById('logPanel');
         var q1 = document.getElementById('q1');
         var traceScene = document.getElementById('traceScene');
@@ -670,27 +651,62 @@
         var status = document.getElementById('status');
         var q2 = document.getElementById('q2');
 
-        // Show metric panel after brief pause
+        // Phase 1: Show metric panel, then Q0
         setTimeout(function () {
           metricPanel.classList.add('visible');
         }, 600);
 
-        // Show log lines one by one
         setTimeout(function () {
-          logPanel.classList.add('visible');
-          var logLines = logPanel.querySelectorAll('.log-line');
-          logLines.forEach(function (line, i) {
-            setTimeout(function () {
-              line.classList.add('visible');
-            }, 200 + i * 180);
-          });
-
-          // Show Q1 after all logs appear
-          var totalLogTime = 200 + logLines.length * 180 + 400;
-          setTimeout(function () {
-            q1.classList.add('visible');
-          }, totalLogTime);
+          q0.classList.add('visible');
         }, 1400);
+
+        // Q0 logic — gates the log panel
+        var fb0 = document.getElementById('fb0');
+        var q0Opts = q0.querySelectorAll('.trace-opt');
+
+        q0Opts.forEach(function (opt) {
+          opt.addEventListener('click', function () {
+            var fbType = this.dataset.fb;
+
+            if (this.dataset.answer === 'correct') {
+              this.classList.add('correct');
+              q0Opts.forEach(function (o) { o.classList.add('disabled'); });
+              fb0.textContent = i18n.t('koan05.q0Correct');
+              fb0.className = 'trace-fb trace-fb--correct';
+
+              // Show bridge text, then log panel
+              setTimeout(function () {
+                logBridge.style.opacity = '1';
+              }, 600);
+
+              setTimeout(function () {
+                logPanel.classList.add('visible');
+                var logLines = logPanel.querySelectorAll('.log-line');
+                logLines.forEach(function (line, i) {
+                  setTimeout(function () {
+                    line.classList.add('visible');
+                  }, 200 + i * 180);
+                });
+
+                // Show Q1 after all logs appear
+                var totalLogTime = 200 + logLines.length * 180 + 400;
+                setTimeout(function () {
+                  q1.classList.add('visible');
+                }, totalLogTime);
+              }, 1400);
+            } else {
+              this.classList.add('wrong');
+              if (fbType === 'wrong-db') {
+                fb0.textContent = i18n.t('koan05.q0WrongDb');
+              } else {
+                fb0.textContent = i18n.t('koan05.q0WrongOk');
+              }
+              fb0.className = 'trace-fb trace-fb--wrong';
+              var self = this;
+              setTimeout(function () { self.classList.remove('wrong'); }, 600);
+            }
+          });
+        });
 
         // Q1 logic
         var fb1 = document.getElementById('fb1');
