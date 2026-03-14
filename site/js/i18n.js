@@ -8,7 +8,18 @@
   var DEFAULT_LOCALE = 'en-US';
   var SUPPORTED = [
     { code: 'en-US', name: 'English (US)' },
-    { code: 'pt-BR', name: 'Portugu\u00eas (BR)' }
+    { code: 'pt-BR', name: 'Portugu\u00eas (BR)' },
+    { code: 'es-ES', name: 'Espa\u00f1ol' },
+    { code: 'fr-FR', name: 'Fran\u00e7ais' },
+    { code: 'de-DE', name: 'Deutsch' },
+    { code: 'it-IT', name: 'Italiano' },
+    { code: 'nl-NL', name: 'Nederlands' },
+    { code: 'sv-SE', name: 'Svenska' },
+    { code: 'cs-CZ', name: '\u010ce\u0161tina' },
+    { code: 'ro-RO', name: 'Rom\u00e2n\u0103' },
+    { code: 'zh-CN', name: '\u4e2d\u6587 (\u7b80\u4f53)' },
+    { code: 'ko-KR', name: '\ud55c\uad6d\uc5b4' },
+    { code: 'ja-JP', name: '\u65e5\u672c\u8a9e' }
   ];
   var strings = {};
   var currentLocale = DEFAULT_LOCALE;
