@@ -614,6 +614,15 @@ body {
   color: var(--text-primary);
 }
 
+.lang-toggle.lang-pulse {
+  animation: langPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes langPulse {
+  0%, 100% { opacity: 0.85; filter: drop-shadow(0 0 0 transparent); }
+  50% { opacity: 1; filter: drop-shadow(0 0 6px rgba(88, 166, 255, 0.5)); color: var(--accent-blue); }
+}
+
 .lang-toggle svg {
   width: 16px;
   height: 16px;
