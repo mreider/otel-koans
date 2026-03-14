@@ -3,15 +3,21 @@
   var SCROLL_DELAY = 150;  // let opacity transition start before scrolling
   var pending = null;
 
-  function scrollToCenter(el) {
-    // Only scroll if element is below the current viewport
+  function scrollIntoView(el) {
     var rect = el.getBoundingClientRect();
     var viewH = window.innerHeight;
     if (rect.top > viewH * 0.65 || rect.bottom < 0) {
-      // Scroll so element is roughly centered
-      var targetY = window.scrollY + rect.top - (viewH / 2) + (rect.height / 2);
-      window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+      // Scroll so element's bottom is visible with padding
+      var targetY = window.scrollY + rect.bottom - viewH + 80;
+      // But don't scroll past the element's top — keep top visible too
+      var topY = window.scrollY + rect.top - 60;
+      window.scrollTo({ top: Math.max(0, Math.min(targetY, topY)), behavior: 'smooth' });
     }
+  }
+
+  function isExpanding(el) {
+    // Elements transitioning from max-height: 0 start with near-zero height
+    return el.offsetHeight < 30;
   }
 
   var observer = new MutationObserver(function (mutations) {
@@ -19,13 +25,24 @@
       var m = mutations[i];
       if (m.type !== 'attributes' || m.attributeName !== 'class') continue;
       var el = m.target;
-      // Only care about elements that just gained 'visible'
       if (!el.classList.contains('visible')) continue;
-      // Skip tiny inline elements (hints, individual letters, etc.)
-      if (el.offsetHeight < 30) continue;
-      // Debounce - if multiple reveals happen rapidly, scroll to the last one
-      clearTimeout(pending);
-      pending = setTimeout(function () { scrollToCenter(el); }, SCROLL_DELAY);
+
+      if (isExpanding(el)) {
+        // Element is transitioning from max-height: 0 — wait for expansion
+        (function (target) {
+          target.addEventListener('transitionend', function handler(e) {
+            if (e.propertyName === 'max-height' || e.propertyName === 'opacity') {
+              target.removeEventListener('transitionend', handler);
+              scrollIntoView(target);
+            }
+          });
+        })(el);
+      } else {
+        clearTimeout(pending);
+        pending = setTimeout((function (target) {
+          return function () { scrollIntoView(target); };
+        })(el), SCROLL_DELAY);
+      }
     }
   });
 
