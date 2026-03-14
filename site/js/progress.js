@@ -105,12 +105,6 @@
   var dots = [];
 
   for (var k = 0; k < KOAN_ORDER.length; k++) {
-    // Insert separator between core (19) and extra credit (20)
-    if (k === 20) {
-      var gap = document.createElement('div');
-      gap.className = 'progress-dots-gap';
-      dotsWrap.appendChild(gap);
-    }
     var dot = document.createElement('a');
     dot.href = koanHref(k);
     dot.className = 'progress-dot';

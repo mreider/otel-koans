@@ -199,7 +199,7 @@ body {
 }
 
 /* Insight reveal — end-of-exercise takeaway */
-[class$="-insight"] {
+[class*="-insight"] {
   text-align: center;
   padding: 0;
   margin-top: 2rem;
@@ -210,13 +210,13 @@ body {
   transition: opacity 0.6s var(--ease-smooth), max-height 0.6s, padding 0.6s;
 }
 
-[class$="-insight"].visible {
+[class*="-insight"].visible {
   opacity: 1;
   max-height: 20rem;
   padding: 2rem 1.5rem;
 }
 
-[class$="-insight"] p {
+[class*="-insight"] p {
   font-family: var(--font-serif);
   font-style: italic;
   font-size: 1.2rem;
@@ -225,12 +225,12 @@ body {
   line-height: 1.7;
 }
 
-[class$="-insight"] strong {
+[class*="-insight"] strong {
   color: var(--text-primary);
 }
 
-[class$="-insight"] .insight-label,
-[class$="-insight"] .insight-keyword {
+[class*="-insight"] .insight-label,
+[class*="-insight"] .insight-keyword {
   font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: 500;
@@ -242,7 +242,7 @@ body {
   font-style: normal;
 }
 
-[class$="-insight"] a {
+[class*="-insight"] a {
   font-family: var(--font-sans);
   font-size: 1rem;
   font-weight: 500;
@@ -257,7 +257,7 @@ body {
               border-color 0.3s var(--ease-smooth);
 }
 
-[class$="-insight"] a:hover {
+[class*="-insight"] a:hover {
   border-color: var(--text-secondary);
   color: var(--text-primary);
   background: rgba(255, 255, 255, 0.04);
