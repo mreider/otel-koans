@@ -437,7 +437,7 @@
           <div class="res-resource-block" id="res0">
             <div class="res-resource-label" data-i18n="koan09.resourceLabel">resource</div>
             <div class="res-resource-pair"><span class="rk">service.name</span><span class="re"> = </span><span class="rv">"orders"</span></div>
-            <div class="res-resource-pair"><span class="rk">deployment.environment</span><span class="re"> = </span><span class="rv">"production"</span></div>
+            <div class="res-resource-pair"><span class="rk">deployment.environment.name</span><span class="re"> = </span><span class="rv">"production"</span></div>
             <div class="res-resource-pair"><span class="rk">host.name</span><span class="re"> = </span><span class="rv">"pod-7f8b9"</span></div>
           </div>
         </div>
@@ -452,7 +452,7 @@
           <div class="res-resource-block" id="res1">
             <div class="res-resource-label" data-i18n="koan09.resourceLabel">resource</div>
             <div class="res-resource-pair"><span class="rk">service.name</span><span class="re"> = </span><span class="rv">"orders"</span></div>
-            <div class="res-resource-pair"><span class="rk">deployment.environment</span><span class="re"> = </span><span class="rv">"staging"</span></div>
+            <div class="res-resource-pair"><span class="rk">deployment.environment.name</span><span class="re"> = </span><span class="rv">"staging"</span></div>
             <div class="res-resource-pair"><span class="rk">host.name</span><span class="re"> = </span><span class="rv">"pod-2a3b4"</span></div>
           </div>
         </div>
@@ -467,7 +467,7 @@
           <div class="res-resource-block" id="res2">
             <div class="res-resource-label" data-i18n="koan09.resourceLabel">resource</div>
             <div class="res-resource-pair"><span class="rk">service.name</span><span class="re"> = </span><span class="rv">"payment"</span></div>
-            <div class="res-resource-pair"><span class="rk">deployment.environment</span><span class="re"> = </span><span class="rv">"production"</span></div>
+            <div class="res-resource-pair"><span class="rk">deployment.environment.name</span><span class="re"> = </span><span class="rv">"production"</span></div>
             <div class="res-resource-pair"><span class="rk">host.name</span><span class="re"> = </span><span class="rv">"pod-9c8d7"</span></div>
           </div>
         </div>
@@ -525,7 +525,7 @@
             <div class="res-resource-block visible">
               <div class="res-resource-label" data-i18n="koan09.resourceLabel">resource</div>
               <div class="res-resource-pair"><span class="rk">service.name</span><span class="re"> = </span><span class="rv">"orders"</span></div>
-              <div class="res-resource-pair"><span class="rk">deployment.environment</span><span class="re"> = </span><span class="rv">"production"</span></div>
+              <div class="res-resource-pair"><span class="rk">deployment.environment.name</span><span class="re"> = </span><span class="rv">"production"</span></div>
               <div class="res-resource-pair"><span class="rk">host.name</span><span class="re"> = </span><span class="rv">"pod-7f8b9"</span></div>
             </div>
           </div>
@@ -539,7 +539,7 @@
             <div class="res-resource-block visible">
               <div class="res-resource-label" data-i18n="koan09.resourceLabel">resource</div>
               <div class="res-resource-pair"><span class="rk">service.name</span><span class="re"> = </span><span class="rv">"orders"</span></div>
-              <div class="res-resource-pair"><span class="rk">deployment.environment</span><span class="re"> = </span><span class="rv">"production"</span></div>
+              <div class="res-resource-pair"><span class="rk">deployment.environment.name</span><span class="re"> = </span><span class="rv">"production"</span></div>
               <div class="res-resource-pair"><span class="rk">host.name</span><span class="re"> = </span><span class="rv">"pod-7f8b9"</span></div>
             </div>
           </div>
@@ -700,11 +700,11 @@
         var hint3 = document.getElementById('hint3');
         var q3WrongCount = 0;
 
-        /* Helper: highlight deployment.environment fields on all cards */
+        /* Helper: highlight deployment.environment.name fields on all cards */
         function highlightEnvironments() {
           document.querySelectorAll('.res-resource-pair').forEach(function (pair) {
             var keyEl = pair.querySelector('.rk');
-            if (keyEl && keyEl.textContent === 'deployment.environment') {
+            if (keyEl && keyEl.textContent === 'deployment.environment.name') {
               pair.classList.add('field-highlight');
             }
           });
