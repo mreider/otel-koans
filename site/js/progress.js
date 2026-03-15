@@ -237,6 +237,22 @@
   document.addEventListener('click', function () { langDrop.hidden = true; tocDrop.hidden = true; });
   nav.appendChild(langDrop);
 
+  // Trophy / certificate button
+  var trophyDiv = document.createElement('div');
+  trophyDiv.className = 'progress-divider';
+  nav.appendChild(trophyDiv);
+
+  var trophyBtn = document.createElement('button');
+  trophyBtn.className = 'trophy-toggle';
+  trophyBtn.title = t('cert.shareTitle', 'Share Your Achievement');
+  trophyBtn.setAttribute('aria-label', t('cert.shareTitle', 'Share Your Achievement'));
+  trophyBtn.innerHTML = window.certificate ? window.certificate.TROPHY_SVG : '';
+  trophyBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (window.certificate) window.certificate.open();
+  });
+  nav.appendChild(trophyBtn);
+
   // GitHub link
   var ghLink = document.createElement('a');
   ghLink.href = 'https://github.com/mreider/otel-koans';
@@ -262,6 +278,8 @@
     }
     if (prevLink) prevLink.title = koanTitle(currentIdx - 1);
     if (nextLink) nextLink.title = koanTitle(currentIdx + 1);
+    trophyBtn.title = t('cert.shareTitle', 'Share Your Achievement');
+    trophyBtn.setAttribute('aria-label', t('cert.shareTitle', 'Share Your Achievement'));
     ghLink.title = t('common.viewOnGithub', 'View on GitHub');
     copy.textContent = t('common.copyright', '\u00A9 2026 Matthew Reider \u00B7 MIT License \u00B7 v0.3.10');
     langBtn.title = t('common.changeLanguage', 'Change language');

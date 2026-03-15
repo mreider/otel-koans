@@ -542,7 +542,15 @@
       <div class="pf-completion-line hl" data-i18n="koan28.completionLine3">You began with silence.</div>
       <div class="pf-completion-line hl" data-i18n="koan28.completionLine4">Now you can see.</div>
       <div class="pf-completion-divider"></div>
-      <a class="pf-completion-link" href="../index.html" data-i18n="koan28.returnLink">&larr; Return to the beginning</a>
+      <div class="cert-completion-prompt">
+        <button class="cert-completion-btn" onclick="if(window.certificate)window.certificate.open()">
+          <svg viewBox="0 0 24 24"><path d="M5 3h14v2h3v3c0 1.7-1.3 3-3 3h-.7c-.7 1.8-2.2 3-4.3 3.3V17h3v2H7v-2h3v-2.7C7.9 14 6.4 12.8 5.7 11H5c-1.7 0-3-1.3-3-3V5h3V3zM5 7H4v1c0 .6.4 1 1 1h.2C5.1 8.4 5 7.7 5 7zM19 7v0c0 .7-.1 1.4-.2 2H19c.6 0 1-.4 1-1V7h-1zM7 5v2c0 2.8 2.2 5 5 5s5-2.2 5-5V5H7z"/></svg>
+          <span data-i18n="cert.sharePrompt">Share your achievement</span>
+        </button>
+      </div>
+      <div style="margin-top:1rem;text-align:center">
+        <a class="pf-completion-link" href="../index.html" data-i18n="koan28.returnLink">&larr; Return to the beginning</a>
+      </div>
     </div>
   </div>
 
@@ -681,7 +689,8 @@
   </script>
   <script src="../js/scroll.js"></script>
   <script src="../js/music.js"></script>
-  <script src="../js/progress.js"></script>
+  <script src="../js/certificate.js"></script>
+<script src="../js/progress.js"></script>
 <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "48917f3aeb9f4b7b9ecf513cf6135ee8"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>

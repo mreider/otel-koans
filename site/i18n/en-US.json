@@ -14,6 +14,19 @@
     "returnToBeginning": "\u2190 Return to the beginning",
     "tableOfContents": "Table of Contents"
   },
+  "cert": {
+    "shareTitle": "Share Your Achievement",
+    "shareSubtitle": "Generate a certificate to share on LinkedIn",
+    "namePlaceholder": "Your name",
+    "generate": "Generate Certificate",
+    "download": "Download Image",
+    "shareLinkedIn": "Share on LinkedIn",
+    "completed": "COMPLETED",
+    "copiedHint": "\u2705 Image copied! Paste it into your LinkedIn post (Ctrl+V / \u2318V)",
+    "downloadedHint": "\u2b07 Image downloaded! Attach it to your LinkedIn post",
+    "linkedInText": "I completed all 29 OpenTelemetry Koans! A hands-on journey through metrics, traces, logs, and beyond.",
+    "sharePrompt": "Share your achievement"
+  },
   "nav": {
     "theOpening": "The Opening",
     "telemetry": "Telemetry",
