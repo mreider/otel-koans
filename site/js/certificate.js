@@ -137,6 +137,7 @@
     canvas.width = w;
     canvas.height = h;
     var cx = w / 2;
+    var cy = h / 2;
 
     // Background gradient
     var bg = ctx.createLinearGradient(0, 0, 0, h);
@@ -145,60 +146,84 @@
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, w, h);
 
-    // Subtle radial glow — centered
-    var glow = ctx.createRadialGradient(cx, h * 0.45, 0, cx, h * 0.45, 420);
+    // Centered radial glow
+    var glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 450);
     glow.addColorStop(0, 'rgba(88, 166, 255, 0.04)');
     glow.addColorStop(1, 'transparent');
     ctx.fillStyle = glow;
     ctx.fillRect(0, 0, w, h);
 
-    // OTel watermark — centered behind everything, very subtle
-    drawOTelWatermark(ctx, cx, h / 2, 3.8, 0.035);
+    // OTel watermark — large, centered, very subtle
+    drawOTelWatermark(ctx, cx, cy, 4.0, 0.03);
 
-    // Border
+    // Outer border
     ctx.strokeStyle = 'rgba(88, 166, 255, 0.15)';
     ctx.lineWidth = 1;
     roundRect(ctx, 24, 16, w - 48, h - 32, 6);
     ctx.stroke();
 
+    // ── Corner brackets (decorative frame) ──
+    ctx.strokeStyle = 'rgba(88, 166, 255, 0.1)';
+    ctx.lineWidth = 1;
+    var bm = 48, bl = 40;
+    // Top-left
+    ctx.beginPath();
+    ctx.moveTo(bm, bm + bl); ctx.lineTo(bm, bm); ctx.lineTo(bm + bl, bm);
+    ctx.stroke();
+    // Top-right
+    ctx.beginPath();
+    ctx.moveTo(w - bm - bl, bm); ctx.lineTo(w - bm, bm); ctx.lineTo(w - bm, bm + bl);
+    ctx.stroke();
+    // Bottom-left
+    ctx.beginPath();
+    ctx.moveTo(bm, h - bm - bl); ctx.lineTo(bm, h - bm); ctx.lineTo(bm + bl, h - bm);
+    ctx.stroke();
+    // Bottom-right
+    ctx.beginPath();
+    ctx.moveTo(w - bm - bl, h - bm); ctx.lineTo(w - bm, h - bm); ctx.lineTo(w - bm, h - bm - bl);
+    ctx.stroke();
+
+    // ── Left anchor: Trophy ──
+    drawTrophy(ctx, 140, cy, 1.5);
+
+    // ── Right anchor: OTel logo (monochrome, decorative) ──
+    drawOTelWatermark(ctx, 1060, cy, 0.7, 0.15);
+
+    // ── Centered text ──
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // ── Top zone: Trophy + branding ──
-    drawTrophy(ctx, cx, 90, 1.3);
-
+    // Branding
     ctx.font = '500 15px "Helvetica Neue", Helvetica, Arial, sans-serif';
     ctx.fillStyle = '#58a6ff';
-    ctx.letterSpacing = '3px';
-    ctx.fillText('O P E N T E L E M E T R Y   K O A N S', cx, 158);
-    ctx.letterSpacing = '0px';
+    ctx.fillText('O P E N T E L E M E T R Y   K O A N S', cx, 95);
 
-    // ── Accent line ──
-    ctx.strokeStyle = 'rgba(88, 166, 255, 0.2)';
+    // Wide accent line
+    ctx.strokeStyle = 'rgba(88, 166, 255, 0.18)';
     ctx.beginPath();
-    ctx.moveTo(cx - 120, 188);
-    ctx.lineTo(cx + 120, 188);
+    ctx.moveTo(cx - 250, 130);
+    ctx.lineTo(cx + 250, 130);
     ctx.stroke();
 
-    // ── "COMPLETED" ──
+    // "COMPLETED"
     ctx.font = '300 22px "Helvetica Neue", Helvetica, Arial, sans-serif';
     ctx.fillStyle = 'rgba(165, 165, 165, 0.6)';
-    ctx.fillText(t('cert.completed', 'COMPLETED'), cx, 225);
+    ctx.fillText(t('cert.completed', 'COMPLETED'), cx, 175);
 
-    // ── Name — the hero element ──
+    // Name — the hero element
     ctx.font = 'italic 72px Baskerville, "Times New Roman", Georgia, serif';
     ctx.fillStyle = '#e6e6e6';
     var displayName = name.length > 24 ? name.substring(0, 21) + '\u2026' : name;
-    ctx.fillText(displayName, cx, 320);
+    ctx.fillText(displayName, cx, 300);
 
-    // ── Accent below name ──
-    ctx.strokeStyle = 'rgba(88, 166, 255, 0.2)';
+    // Wide accent below name
+    ctx.strokeStyle = 'rgba(88, 166, 255, 0.18)';
     ctx.beginPath();
-    ctx.moveTo(cx - 120, 375);
-    ctx.lineTo(cx + 120, 375);
+    ctx.moveTo(cx - 250, 360);
+    ctx.lineTo(cx + 250, 360);
     ctx.stroke();
 
-    // ── Details: koan count + date ──
+    // Details: koan count + date
     var months = [
       'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'
@@ -207,23 +232,12 @@
     var dateStr = TOTAL_KOANS + ' koans \u00B7 ' + months[now.getMonth()] + ' ' + now.getFullYear();
     ctx.font = '20px "Helvetica Neue", Helvetica, Arial, sans-serif';
     ctx.fillStyle = 'rgba(165, 165, 165, 0.55)';
-    ctx.fillText(dateStr, cx, 430);
+    ctx.fillText(dateStr, cx, 425);
 
-    // ── Site URL ──
+    // Site URL
     ctx.font = '500 20px "Helvetica Neue", Helvetica, Arial, sans-serif';
     ctx.fillStyle = '#3fb950';
-    ctx.fillText(SITE_URL, cx, 485);
-
-    // ── Small OTel logo at bottom center ──
-    drawOTelLogo(ctx, cx, 548, 0.25);
-
-    // Corner dots (decorative)
-    ctx.fillStyle = 'rgba(88, 166, 255, 0.12)';
-    [[40, 32], [w - 40, 32], [40, h - 32], [w - 40, h - 32]].forEach(function (p) {
-      ctx.beginPath();
-      ctx.arc(p[0], p[1], 2, 0, Math.PI * 2);
-      ctx.fill();
-    });
+    ctx.fillText(SITE_URL, cx, 490);
   }
 
   function roundRect(ctx, x, y, w, h, r) {
