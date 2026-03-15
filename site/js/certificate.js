@@ -130,6 +130,159 @@
     ctx.restore();
   }
 
+  /* ── Certificate border system ── */
+  function drawCertificateBorder(ctx, w, h) {
+    // Layer 1: Outer guard line — barely visible outermost boundary
+    ctx.strokeStyle = 'rgba(88, 166, 255, 0.1)';
+    ctx.lineWidth = 0.5;
+    roundRect(ctx, 18, 12, w - 36, h - 24, 8);
+    ctx.stroke();
+
+    // Layer 2: Main double-line border with glow
+    // Glow pass — soft bloom behind the crisp line
+    ctx.strokeStyle = 'rgba(88, 166, 255, 0.06)';
+    ctx.lineWidth = 6;
+    roundRect(ctx, 30, 22, w - 60, h - 44, 6);
+    ctx.stroke();
+    // Outer line of the double border
+    ctx.strokeStyle = 'rgba(88, 166, 255, 0.35)';
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, 30, 22, w - 60, h - 44, 6);
+    ctx.stroke();
+    // Inner line of the double border (6px channel)
+    ctx.strokeStyle = 'rgba(88, 166, 255, 0.2)';
+    ctx.lineWidth = 0.75;
+    roundRect(ctx, 38, 30, w - 76, h - 60, 4);
+    ctx.stroke();
+
+    // Layer 3: Guilloche wave pattern in the channel between double lines
+    drawGuilloche(ctx, w, h);
+
+    // Layer 4: Inner content border — whisper of structure
+    ctx.strokeStyle = 'rgba(88, 166, 255, 0.06)';
+    ctx.lineWidth = 0.5;
+    roundRect(ctx, 48, 40, w - 96, h - 80, 3);
+    ctx.stroke();
+
+    // Corner rosettes at the four corners of the main border
+    drawCornerRosettes(ctx, w, h);
+  }
+
+  function drawGuilloche(ctx, w, h) {
+    var amp = 2.8;         // wave amplitude (fits in 6px channel)
+    var waveLen = 36;      // wavelength
+    var halfWave = waveLen / 2;
+    var cp = waveLen / 4;  // control point offset
+
+    ctx.strokeStyle = 'rgba(88, 166, 255, 0.14)';
+    ctx.lineWidth = 0.5;
+
+    // Midline of the channel: between the 30px and 38px borders
+    var midY_top = 26;     // midpoint between y=22 and y=30
+    var midY_bot = h - 26;
+    var midX_left = 34;    // midpoint between x=30 and x=38
+    var midX_right = w - 34;
+
+    // Rounded corner insets — don't draw waves into corners
+    var cornerSkip = 16;
+    var xStart = 30 + cornerSkip;
+    var xEnd = w - 30 - cornerSkip;
+    var yStart = 22 + cornerSkip;
+    var yEnd = h - 22 - cornerSkip;
+
+    // ── Top edge: two interleaved sine waves ──
+    drawWaveLine(ctx, xStart, midY_top, xEnd, midY_top, amp, waveLen, cp, true);
+    drawWaveLine(ctx, xStart + halfWave, midY_top, xEnd, midY_top, amp, waveLen, cp, false);
+
+    // ── Bottom edge ──
+    drawWaveLine(ctx, xStart, midY_bot, xEnd, midY_bot, amp, waveLen, cp, true);
+    drawWaveLine(ctx, xStart + halfWave, midY_bot, xEnd, midY_bot, amp, waveLen, cp, false);
+
+    // ── Left edge (vertical) ──
+    drawWaveLineV(ctx, midX_left, yStart, midX_left, yEnd, amp, waveLen, cp, true);
+    drawWaveLineV(ctx, midX_left, yStart + halfWave, midX_left, yEnd, amp, waveLen, cp, false);
+
+    // ── Right edge (vertical) ──
+    drawWaveLineV(ctx, midX_right, yStart, midX_right, yEnd, amp, waveLen, cp, true);
+    drawWaveLineV(ctx, midX_right, yStart + halfWave, midX_right, yEnd, amp, waveLen, cp, false);
+  }
+
+  // Horizontal sine wave using bezier curves
+  function drawWaveLine(ctx, x1, y, x2, _y, amp, waveLen, cp, startUp) {
+    var dir = startUp ? -1 : 1;
+    ctx.beginPath();
+    ctx.moveTo(x1, y);
+    for (var x = x1; x < x2; x += waveLen / 2) {
+      var segEnd = Math.min(x + waveLen / 2, x2);
+      var segLen = segEnd - x;
+      var ratio = segLen / (waveLen / 2);
+      ctx.bezierCurveTo(
+        x + cp * ratio, y + amp * dir * ratio,
+        segEnd - cp * ratio, y + amp * dir * ratio,
+        segEnd, y
+      );
+      dir *= -1;
+    }
+    ctx.stroke();
+  }
+
+  // Vertical sine wave using bezier curves
+  function drawWaveLineV(ctx, x, y1, _x, y2, amp, waveLen, cp, startRight) {
+    var dir = startRight ? 1 : -1;
+    ctx.beginPath();
+    ctx.moveTo(x, y1);
+    for (var y = y1; y < y2; y += waveLen / 2) {
+      var segEnd = Math.min(y + waveLen / 2, y2);
+      var segLen = segEnd - y;
+      var ratio = segLen / (waveLen / 2);
+      ctx.bezierCurveTo(
+        x + amp * dir * ratio, y + cp * ratio,
+        x + amp * dir * ratio, segEnd - cp * ratio,
+        x, segEnd
+      );
+      dir *= -1;
+    }
+    ctx.stroke();
+  }
+
+  function drawCornerRosettes(ctx, w, h) {
+    // Small radial bursts at each corner of the main border
+    var corners = [
+      [34, 26],           // top-left
+      [w - 34, 26],       // top-right
+      [34, h - 26],       // bottom-left
+      [w - 34, h - 26]    // bottom-right
+    ];
+    var spokes = 12;
+    var spokeLen = 6;
+    var angleStep = (Math.PI * 2) / spokes;
+
+    ctx.strokeStyle = 'rgba(88, 166, 255, 0.25)';
+    ctx.lineWidth = 0.75;
+
+    corners.forEach(function (c) {
+      // Radial spokes
+      for (var i = 0; i < spokes; i++) {
+        var angle = i * angleStep;
+        ctx.beginPath();
+        ctx.moveTo(
+          c[0] + Math.cos(angle) * 2,
+          c[1] + Math.sin(angle) * 2
+        );
+        ctx.lineTo(
+          c[0] + Math.cos(angle) * spokeLen,
+          c[1] + Math.sin(angle) * spokeLen
+        );
+        ctx.stroke();
+      }
+      // Tiny center dot
+      ctx.fillStyle = 'rgba(88, 166, 255, 0.15)';
+      ctx.beginPath();
+      ctx.arc(c[0], c[1], 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
   /* ── Render certificate on canvas ── */
   function renderCertificate(canvas, name) {
     var ctx = canvas.getContext('2d');
@@ -156,32 +309,8 @@
     // OTel watermark — large, centered, very subtle
     drawOTelWatermark(ctx, cx, cy, 4.0, 0.03);
 
-    // Outer border
-    ctx.strokeStyle = 'rgba(88, 166, 255, 0.15)';
-    ctx.lineWidth = 1;
-    roundRect(ctx, 24, 16, w - 48, h - 32, 6);
-    ctx.stroke();
-
-    // ── Corner brackets (decorative frame) ──
-    ctx.strokeStyle = 'rgba(88, 166, 255, 0.1)';
-    ctx.lineWidth = 1;
-    var bm = 48, bl = 40;
-    // Top-left
-    ctx.beginPath();
-    ctx.moveTo(bm, bm + bl); ctx.lineTo(bm, bm); ctx.lineTo(bm + bl, bm);
-    ctx.stroke();
-    // Top-right
-    ctx.beginPath();
-    ctx.moveTo(w - bm - bl, bm); ctx.lineTo(w - bm, bm); ctx.lineTo(w - bm, bm + bl);
-    ctx.stroke();
-    // Bottom-left
-    ctx.beginPath();
-    ctx.moveTo(bm, h - bm - bl); ctx.lineTo(bm, h - bm); ctx.lineTo(bm + bl, h - bm);
-    ctx.stroke();
-    // Bottom-right
-    ctx.beginPath();
-    ctx.moveTo(w - bm - bl, h - bm); ctx.lineTo(w - bm, h - bm); ctx.lineTo(w - bm, h - bm - bl);
-    ctx.stroke();
+    // ── Certificate border system (4 layers) ──
+    drawCertificateBorder(ctx, w, h);
 
     // ── Left anchor: Trophy ──
     drawTrophy(ctx, 140, cy, 1.5);
