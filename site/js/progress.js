@@ -285,7 +285,7 @@
   // Copyright (appears above bar on hover)
   var copy = document.createElement('div');
   copy.className = 'site-copyright';
-  copy.textContent = t('common.copyright', '\u00A9 2026 Matthew Reider \u00B7 MIT License \u00B7 v0.3.10');
+  copy.textContent = t('common.copyright', '\u00A9 2026 Matthew Reider \u00B7 MIT License \u00B7 v0.3.11');
   nav.appendChild(copy);
 
   document.body.appendChild(nav);
@@ -301,7 +301,7 @@
     trophyBtn.setAttribute('aria-label', t('cert.shareTitle', 'Share Your Achievement'));
     refLink.title = t('common.referenceGuide', 'OTel Primer');
     ghLink.title = t('common.viewOnGithub', 'View on GitHub');
-    copy.textContent = t('common.copyright', '\u00A9 2026 Matthew Reider \u00B7 MIT License \u00B7 v0.3.10');
+    copy.textContent = t('common.copyright', '\u00A9 2026 Matthew Reider \u00B7 MIT License \u00B7 v0.3.11');
     langBtn.title = t('common.changeLanguage', 'Change language');
     langBtn.setAttribute('aria-label', t('common.changeLanguage', 'Change language'));
     tocBtn.title = t('common.tableOfContents', 'Table of Contents');
