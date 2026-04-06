@@ -103,6 +103,22 @@
     return obj;
   }
 
+  /* ── Set text content without destroying child elements ── */
+  function setTextSafe(el, text) {
+    /* If the element has child elements (e.g. picker buttons),
+       only update the first text node to avoid wiping them out. */
+    if (el.firstElementChild) {
+      var textNode = el.firstChild;
+      if (textNode && textNode.nodeType === 3) {
+        textNode.nodeValue = text;
+      } else {
+        el.insertBefore(document.createTextNode(text), el.firstChild);
+      }
+    } else {
+      el.textContent = text;
+    }
+  }
+
   /* ── Helpers: set text AND mark for re-translation on locale switch.
      Optional transform(value) lets callers post-process the translated
      string (e.g. replace placeholders, concatenate). The transform is
@@ -111,7 +127,7 @@
   function applyText(el, key, transform) {
     var v = t(key);
     if (transform) v = transform(v);
-    el.textContent = v;
+    setTextSafe(el, v);
     el.setAttribute('data-i18n', key);
     el.removeAttribute('data-i18n-html');
     if (transform) el._i18nTransform = transform;
@@ -133,7 +149,7 @@
       var v = t(el.getAttribute('data-i18n'));
       if (v !== el.getAttribute('data-i18n')) {
         if (el._i18nTransform) v = el._i18nTransform(v);
-        el.textContent = v;
+        setTextSafe(el, v);
       }
     });
     document.querySelectorAll('[data-i18n-html]').forEach(function (el) {

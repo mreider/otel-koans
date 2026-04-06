@@ -81,6 +81,31 @@ describe('i18n.applyText()', function () {
     window.i18n.applyText(el, 'common.check');
     expect(el.hasAttribute('data-i18n-html')).toBe(false);
   });
+
+  test('preserves child elements when updating text', function () {
+    var el = document.createElement('div');
+    el.appendChild(document.createTextNode('old text'));
+    var child = document.createElement('button');
+    child.textContent = 'Pick';
+    el.appendChild(child);
+
+    window.i18n.applyText(el, 'common.check');
+    expect(el.firstChild.nodeValue).toBe('Check');
+    expect(el.querySelector('button')).not.toBeNull();
+    expect(el.querySelector('button').textContent).toBe('Pick');
+  });
+
+  test('inserts text node when element has only child elements', function () {
+    var el = document.createElement('div');
+    var child = document.createElement('span');
+    child.textContent = 'child';
+    el.appendChild(child);
+
+    window.i18n.applyText(el, 'common.check');
+    expect(el.firstChild.nodeType).toBe(3); // TEXT_NODE
+    expect(el.firstChild.nodeValue).toBe('Check');
+    expect(el.querySelector('span')).not.toBeNull();
+  });
 });
 
 /* ══════════════════════════════════════════════════════════════════
@@ -174,6 +199,22 @@ describe('i18n.applyDOM()', function () {
 
     window.i18n.applyDOM();
     expect(el.textContent).toBe('original');
+  });
+
+  test('preserves child elements when re-translating', function () {
+    var el = document.createElement('div');
+    el.appendChild(document.createTextNode('old'));
+    var btn = document.createElement('button');
+    btn.className = 'picker';
+    btn.textContent = 'A';
+    el.appendChild(btn);
+    el.setAttribute('data-i18n', 'common.check');
+    document.body.appendChild(el);
+
+    window.i18n.applyDOM();
+    expect(el.firstChild.nodeValue).toBe('Check');
+    expect(el.querySelector('button.picker')).not.toBeNull();
+    expect(el.querySelector('button.picker').textContent).toBe('A');
   });
 });
 
