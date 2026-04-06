@@ -229,6 +229,12 @@
       box-shadow: 0 0 6px rgba(63, 185, 80, 0.4);
     }
 
+    .routing-strategy-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
     /* Question section */
     .routing-question {
       background: var(--bg-glass);
@@ -467,7 +473,7 @@
           <div class="routing-controls-label" data-i18n="koan23.controlsLabel">Routing strategy</div>
           <div class="routing-strategies">
             <button class="routing-strategy-btn active" id="stratScatter" data-strategy="scatter" data-i18n="koan23.strategyScatter">Round-robin</button>
-            <button class="routing-strategy-btn" id="stratHash" data-strategy="hash" data-i18n="koan23.strategyHash">Consistent hashing (trace ID)</button>
+            <button class="routing-strategy-btn" id="stratHash" data-strategy="hash" data-i18n="koan23.strategyHash" disabled>Consistent hashing (trace ID)</button>
           </div>
         </div>
       </div>
@@ -795,7 +801,8 @@
               i18n.applyText(fb1, 'koan23.q1Correct');
               fb1.className = 'routing-fb routing-fb--correct';
               q1Answered = true;
-              /* Prompt them to try consistent hashing */
+              /* Unlock the consistent hashing button */
+              stratHash.disabled = false;
               animTimers.push(setTimeout(function () {
                 i18n.applyHtml(explanation, 'koan23.explanationTryHash');
               }, 800));
